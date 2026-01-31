@@ -1,240 +1,1291 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bathing Schedule Manager</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    /* 共通：行間崩れ対策 */
-    .tight-cell {
-      line-height: 1.15 !important;
-      font-size: 11px !important;
-      word-break: break-all;
-      overflow-wrap: break-word;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>入浴予定表管理</title>
+    <style>
+        /* --- Base Styles --- */
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg-gray: #f8fafc;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text-light: #64748b;
+            
+            /* Color Palette (Tailwind-like) */
+            --c-red-100: #fee2e2;
+            --c-red-600: #dc2626;
+            --c-blue-100: #dbeafe;
+            --c-blue-600: #2563eb;
+            --c-yellow-200: #fef08a;
+            --c-green-200: #bbf7d0;
+            --c-purple-100: #f3e8ff;
+            --c-gray-100: #f3f4f6;
+            --c-white: #ffffff;
+            --c-orange-200: #fed7aa;
+        }
 
-    .tight-cell *, 
-    .tight-cell span, 
-    .tight-cell font {
-      margin: 0 !important;
-      padding: 0 !important;
-      line-height: inherit !important;
-      display: inline !important;
-      vertical-align: baseline !important;
-      font-size: inherit !important;
-    }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-gray);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            padding-bottom: 80px; /* Footer space */
+        }
 
-    .tight-cell br {
-      display: block !important;
-      content: "";
-      margin: 0 !important;
-    }
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
 
-    /* エディタ内 */
-    [contenteditable] {
-      line-height: 1.15 !important;
-    }
+        /* --- Utilities --- */
+        .hidden { display: none !important; }
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .justify-end { justify-content: flex-end; }
+        .gap-1 { gap: 4px; }
+        .gap-2 { gap: 8px; }
+        .gap-4 { gap: 16px; }
+        .p-2 { padding: 8px; }
+        .p-4 { padding: 16px; }
+        .px-4 { padding-left: 16px; padding-right: 16px; }
+        .py-2 { padding-top: 8px; padding-bottom: 8px; }
+        .mt-2 { margin-top: 8px; }
+        .mt-4 { margin-top: 16px; }
+        .mb-2 { margin-bottom: 8px; }
+        .mb-4 { margin-bottom: 16px; }
+        .text-center { text-align: center; }
+        .font-bold { font-weight: bold; }
+        .text-sm { font-size: 14px; }
+        .text-xs { font-size: 12px; }
+        .w-full { width: 100%; }
+        .cursor-pointer { cursor: pointer; }
 
-    /* 印刷用設定 */
-    @media print {
-      /* 背景色を強制的に印刷 */
-      * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-      }
+        /* --- Components --- */
+        header {
+            background-color: #0f172a;
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
 
-      /* 用紙設定 */
-      @page { 
-        size: A4 portrait; 
-        margin: 5mm !important; 
-      }
-      
-      html, body {
-        width: 100% !important;
-        height: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        background: white !important;
-        overflow: hidden !important;
-      }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 12px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            background-color: white;
+            color: var(--text);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .btn:hover { background-color: #f1f5f9; }
+        .btn:active { transform: scale(0.95); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-      /* アプリルート */
-      .app-root {
-        width: 100% !important;
-        height: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        background: white !important;
-        position: relative !important;
-      }
+        .btn-icon { padding: 8px; border-radius: 8px; }
 
-      /* 不要要素非表示 */
-      header, nav, .no-print, .fixed, button, .bg-slate-900 { 
-        display: none !important; 
-        height: 0 !important;
-        width: 0 !important;
-        opacity: 0 !important;
-        visibility: hidden !important;
-        pointer-events: none !important;
-      }
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-dark); }
 
-      /* メインエリア */
-      main {
-        flex: 1 !important;
-        width: 100% !important;
-        max-width: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        display: flex !important;
-        flex-direction: column !important;
-      }
+        .btn-success { background-color: #059669; color: white; }
+        .btn-success:hover { background-color: #047857; }
 
-      /* タイトル調整 */
-      h2 {
-        font-size: 16pt !important;
-        margin-bottom: 2mm !important;
-        padding-top: 0 !important;
-        text-align: center !important;
-        flex: 0 0 auto !important;
-      }
-      
-      .text-center.mb-6.relative {
-        margin-bottom: 2mm !important;
-        flex: 0 0 auto !important;
-      }
+        .btn-danger { background-color: #dc2626; color: white; }
+        .btn-danger:hover { background-color: #b91c1c; }
 
-      /* スケジュール表コンテナ */
-      .schedule-container {
-        flex: 1 !important; 
-        width: 100% !important;
-        border: 2px solid #000 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        margin-bottom: 0 !important;
-        background: white !important;
-      }
+        .btn-dark { background-color: #334155; color: white; }
+        .btn-dark:hover { background-color: #1e293b; }
 
-      /* 曜日ヘッダー */
-      .grid.grid-cols-7 {
-        flex: 0 0 auto !important;
-        border-bottom: 1px solid #000 !important;
-        display: flex !important;
-      }
-      
-      .grid.grid-cols-7 > div {
-        flex: 1 !important;
-        border-right: 1px solid #000 !important;
-        font-size: 10pt !important;
-      }
-      .grid.grid-cols-7 > div:last-child {
-        border-right: none !important;
-      }
+        /* --- Calendar Grid --- */
+        .container {
+            max-width: 210mm; /* A4 width approx */
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+        }
 
-      /* 週の行 */
-      /* Grid Layoutに変更し、上下の配置を厳格にする */
-      .week-row {
-        flex: 1 1 0% !important; /* 親コンテナ内での均等配置 */
-        display: grid !important;
-        grid-template-rows: 1fr auto !important; /* 上部可変(1fr)、下部固定(auto) */
-        grid-template-columns: 100% !important;
-        border-bottom: 1px solid #000 !important;
-        min-height: 0 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-      }
-      .week-row:last-child {
-        border-bottom: none !important;
-      }
+        .schedule-container {
+            border: 2px solid #0f172a;
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
 
-      /* 
-         日付グリッド
-         Gridアイテムとして 1fr の領域を埋める
-      */
-      .days-grid {
-        width: 100% !important;
-        height: 100% !important;
-        min-height: 0 !important;
-        display: flex !important; /* 内部はflex */
-        flex-direction: row !important;
-        margin: 0 !important;
-        padding: 0 !important;
-      }
-      
-      /* 各日付の列 */
-      .days-grid > div {
-         flex: 1 1 0% !important; 
-         display: flex !important;
-         flex-direction: column !important;
-         height: 100% !important; /* 親の高さに合わせる */
-         border-right: 1px solid #000 !important;
-      }
-      .days-grid > div:last-child {
-        border-right: none !important;
-      }
-      
-      /* 日付数字 */
-      .days-grid > div > div:first-child {
-        border-bottom: 1px solid #000 !important; /* #cccから#000に変更して濃くする */
-        font-size: 9pt !important;
-        flex: 0 0 auto !important;
-      }
+        .header-row {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            border-bottom: 2px solid #0f172a;
+        }
 
-      /* セル内のテキスト配置 */
-      .tight-cell {
-        flex: 1 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: center !important; 
-        align-items: center !important;
-        height: auto !important;
-        font-size: 9pt !important;
-        padding: 1px !important;
-      }
+        .header-cell {
+            text-align: center;
+            padding: 6px 0;
+            font-size: 14px;
+            font-weight: bold;
+            border-right: 1px solid #0f172a;
+            background-color: #f8fafc;
+        }
+        .header-cell:last-child { border-right: none; }
+        .text-red { color: var(--c-red-600); }
+        .text-blue { color: var(--c-blue-600); }
 
-      /* 衛生チェック行 */
-      .footer-row {
-        /* Gridアイテムとして auto の領域を使用 */
-        width: 100% !important;
-        height: 16px !important;
-        margin: 0 !important; /* 余計なマージン削除 */
-        padding: 0 !important;
-        overflow: hidden !important;
-        border-top: 1px solid #000 !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        font-size: 8pt !important;
-        background-color: #fef08a !important; 
-      }
-      
-      .print-border-black { 
-        border-color: #000 !important; 
-        border-width: 1px !important;
-      }
+        .week-row {
+            display: flex;
+            flex-direction: column;
+            border-bottom: 1px solid #0f172a;
+        }
+        .week-row:last-child { border-bottom: none; }
 
-      .hidden-print {
-        display: none !important;
-      }
-    }
-  </style>
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            flex-grow: 1;
+        }
+
+        .day-cell {
+            border-right: 1px solid #0f172a;
+            display: flex;
+            flex-direction: column;
+            min-height: 120px;
+        }
+        .day-cell:last-child { border-right: none; }
+
+        .date-label {
+            text-align: center;
+            font-size: 11px;
+            font-weight: bold;
+            border-bottom: 1px solid #94a3b8;
+            background-color: white;
+            padding: 2px 0;
+        }
+
+        .slot {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2px;
+            cursor: pointer;
+            border-bottom: 1px dashed #cbd5e1;
+            font-size: 11px;
+            line-height: 1.15;
+            transition: background-color 0.1s;
+        }
+        .slot:hover { opacity: 0.8; }
+        .slot:last-child { border-bottom: none; }
+
+        .footer-cell {
+            border-top: 1px solid #0f172a;
+            text-align: center;
+            font-size: 10px;
+            padding: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .footer-cell:hover { opacity: 0.8; }
+
+        /* Background Colors */
+        .bg-pink { background-color: var(--c-red-100); }
+        .bg-blue { background-color: var(--c-blue-100); }
+        .bg-yellow { background-color: var(--c-yellow-200); }
+        .bg-green { background-color: var(--c-green-200); }
+        .bg-purple { background-color: var(--c-purple-100); }
+        .bg-gray { background-color: var(--c-gray-100); }
+        .bg-white { background-color: var(--c-white); }
+        .bg-orange { background-color: var(--c-orange-200); }
+
+        /* --- Modals --- */
+        .modal-backdrop {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 480px;
+            overflow: hidden;
+            animation: zoomIn 0.2s ease-out;
+        }
+        
+        .modal-lg {
+            max-width: 1000px;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            background-color: #1e293b;
+            color: white;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .editor-area {
+            width: 100%;
+            min-height: 140px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .editor-area:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .color-picker {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .color-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid #e2e8f0;
+            cursor: pointer;
+        }
+        .color-btn.active {
+            border-color: #1e293b;
+            transform: scale(1.1);
+        }
+
+        .toast {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #1e293b;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        /* --- Input/Forms --- */
+        input[type="text"], select, textarea {
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px;
+            width: 100%;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* --- Animations --- */
+        @keyframes zoomIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px) translateX(-50%); }
+            to { opacity: 1; transform: translateY(0) translateX(-50%); }
+        }
+
+        /* --- Print Styles --- */
+        @media print {
+            header, .no-print, .modal-backdrop, .toast { 
+                display: none !important; 
+            }
+            body { 
+                padding: 0; 
+                background: white; 
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .container {
+                max-width: 100%;
+                width: 100%;
+                padding: 0;
+                margin: 0;
+            }
+            .schedule-container {
+                border: 1px solid black;
+            }
+            .header-cell, .day-cell, .week-row, .footer-cell, .date-label, .slot {
+                border-color: black;
+            }
+            .week-row {
+                break-inside: avoid;
+            }
+            /* 入力フィールドのボーダー等を消す */
+            input { border: none; background: transparent; }
+        }
+    </style>
 <script type="importmap">
 {
   "imports": {
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "lucide-react": "https://esm.sh/lucide-react@^0.563.0"
+    "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4"
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
 </head>
-<body class="bg-gray-50 antialiased print:bg-white">
-  <div id="root"></div>
-<script type="module" src="/index.tsx"></script>
+<body>
+
+<div id="app">
+    <!-- Header -->
+    <header class="no-print">
+        <div class="flex flex-col md:flex-row justify-between items-center" style="max-width: 1280px; margin: 0 auto;">
+            <div class="flex items-center gap-2 mb-2 md:mb-0">
+                <div style="background-color: var(--primary); padding: 8px; border-radius: 8px;">
+                    <!-- Calendar Icon -->
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                </div>
+                <div>
+                    <h1 style="margin: 0; font-size: 18px;">特養入浴予定表管理</h1>
+                    <span style="font-size: 10px; color: #94a3b8; text-transform: uppercase;">Facility Bathing Schedule</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 flex-wrap justify-center">
+                <!-- Undo/Redo -->
+                <div class="flex items-center bg-gray-800 p-1" style="background: #1e293b; border-radius: 8px;">
+                    <button id="btnUndo" class="btn btn-dark btn-icon" title="戻る">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path></svg>
+                    </button>
+                    <div style="width: 1px; height: 16px; background: #475569; margin: 0 4px;"></div>
+                    <button id="btnRedo" class="btn btn-dark btn-icon" title="進む">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"></path><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 3.7"></path></svg>
+                    </button>
+                </div>
+
+                <!-- Month Nav -->
+                <div class="flex items-center bg-gray-800 p-1" style="background: #1e293b; border-radius: 8px;">
+                    <button id="btnPrevMonth" class="btn btn-dark btn-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+                    </button>
+                    <span id="currentMonthLabel" style="padding: 0 12px; font-family: monospace; font-weight: bold; font-size: 16px;">2026年 2月</span>
+                    <button id="btnNextMonth" class="btn btn-dark btn-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                    </button>
+                </div>
+
+                <button id="btnCheck" class="btn" style="background-color: #d97706; color: white;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    回数チェック
+                </button>
+                <button id="btnConfig" class="btn btn-primary">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    マスタ設定
+                </button>
+                <button id="btnPrint" class="btn btn-success">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                    Ctrl+P 印刷
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="container">
+        <div class="text-center mb-4" style="position: relative;">
+            <h2 class="font-bold" style="border-bottom: 2px solid #1e293b; display: inline-block; padding: 0 40px 8px 40px; margin-bottom: 4px; font-size: 24px;">
+                <input type="text" id="facilityNameInput" value="2 階 南 棟" class="font-bold text-center" style="border: none; border-bottom: 2px solid var(--c-blue-600); background: #eff6ff; width: 200px; font-size: inherit; color: inherit;">
+                <span id="headerDateLabel">月間予定表</span>
+            </h2>
+            <div class="no-print" style="position: absolute; right: 0; top: 0;">
+                <div id="updateDateContainer" class="text-red font-bold text-xs flex items-center gap-1 cursor-pointer p-1" style="color: #dc2626;">
+                    <span id="updateDateDisplay">更新日: 未設定</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                </div>
+            </div>
+            <div class="text-red font-bold text-xs" style="position: absolute; right: 0; bottom: 0; color: #dc2626;" id="printUpdateDate"></div>
+        </div>
+
+        <!-- Schedule Table -->
+        <div id="calendarRoot" class="schedule-container">
+            <!-- JS will inject here -->
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal-backdrop hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="font-bold flex items-center gap-2" style="margin: 0;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                    編集
+                </h3>
+                <button class="modal-close btn-icon" style="background: none; border: none; color: white; cursor: pointer;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="residentSelectContainer" class="mb-4">
+                    <label class="text-xs font-bold text-light block mb-2 uppercase">名簿から追加</label>
+                    <select id="modalResidentSelect">
+                        <option value="">選択してください...</option>
+                    </select>
+                </div>
+
+                <!-- Rich Text Toolbar -->
+                <div class="flex items-center gap-2 mb-2 p-2 bg-gray rounded" style="background: #f1f5f9;">
+                    <button type="button" onclick="document.execCommand('undo')" class="btn-icon" title="Undo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path></svg></button>
+                    <button type="button" onclick="document.execCommand('redo')" class="btn-icon" title="Redo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7v6h-6"></path><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 3.7"></path></svg></button>
+                    <div style="width: 1px; height: 16px; background: #cbd5e1;"></div>
+                    <button type="button" onclick="document.execCommand('bold')" class="font-bold" style="padding: 4px 8px;">B</button>
+                    <div style="width: 1px; height: 16px; background: #cbd5e1;"></div>
+                    <button type="button" onclick="document.execCommand('foreColor', false, '#000000')" style="width: 20px; height: 20px; background: black; border-radius: 50%; border: 1px solid #ccc;"></button>
+                    <button type="button" onclick="document.execCommand('foreColor', false, '#dc2626')" style="width: 20px; height: 20px; background: #dc2626; border-radius: 50%; border: 1px solid #ccc;"></button>
+                    <button type="button" onclick="document.execCommand('foreColor', false, '#2563eb')" style="width: 20px; height: 20px; background: #2563eb; border-radius: 50%; border: 1px solid #ccc;"></button>
+                </div>
+
+                <div id="modalEditor" class="editor-area" contenteditable="true"></div>
+                
+                <div id="weekPropagateContainer" class="hidden mt-4 p-4 bg-yellow rounded" style="background: #fffbeb; border: 1px solid #fcd34d;">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="propagateCheck">
+                        <span class="text-sm font-bold" style="color: #92400e;">今後の同週の標準設定にする</span>
+                    </label>
+                </div>
+
+                <div class="mt-4">
+                    <label class="text-xs font-bold text-light block mb-2 uppercase">背景色</label>
+                    <div id="colorPicker" class="color-picker">
+                        <!-- Generated by JS -->
+                    </div>
+                </div>
+
+                <div class="flex gap-2 mt-6">
+                    <button class="modal-close btn w-full justify-center" style="background: #f1f5f9;">キャンセル</button>
+                    <button id="modalSaveBtn" class="btn btn-primary w-full justify-center">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Config Modal -->
+    <div id="configModal" class="modal-backdrop hidden">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <h3 class="font-bold flex items-center gap-2" style="margin: 0;">マスタ設定・名簿管理</h3>
+                <button class="modal-close btn-icon" style="background: none; border: none; color: white; cursor: pointer;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Data Management -->
+                <section class="mb-8 p-4 bg-gray rounded" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                    <h4 class="font-bold mb-4 flex items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                        データ管理
+                    </h4>
+                    <div class="flex gap-4 flex-wrap">
+                        <button id="btnExportJson" class="btn">JSON書き出し</button>
+                        <button id="btnImportJson" class="btn">JSON読み込み</button>
+                        <input type="file" id="fileImport" class="hidden" accept=".json">
+                        <button id="btnExportHtml" class="btn" style="background-color: #0d9488; color: white;">HTML書き出し</button>
+                    </div>
+                </section>
+
+                <!-- Residents -->
+                <section class="mb-8">
+                    <h4 class="font-bold mb-4">入所者名簿</h4>
+                    <div id="residentList" class="flex flex-wrap gap-2 mb-4">
+                        <!-- JS Generated -->
+                    </div>
+                    <div class="flex gap-2" style="max-width: 400px;">
+                        <input type="text" id="newResidentInput" placeholder="新しい名前...">
+                        <button id="btnAddResident" class="btn btn-primary">追加</button>
+                    </div>
+                </section>
+
+                <!-- Master Schedule -->
+                <section>
+                    <h4 class="font-bold mb-4">曜日固定パターン</h4>
+                    <div id="masterScheduleGrid" class="flex flex-col gap-8">
+                        <!-- JS Generated -->
+                    </div>
+                </section>
+            </div>
+            <div class="p-4 border-t flex justify-end gap-2" style="border-top: 1px solid #e2e8f0;">
+                <button class="modal-close btn">閉じる</button>
+                <button id="configSaveBtn" class="btn btn-primary">設定を保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Check Result Modal -->
+    <div id="checkModal" class="modal-backdrop hidden">
+        <div class="modal" style="max-width: 600px;">
+            <div class="modal-header" style="background-color: #d97706;">
+                <h3 class="font-bold">入浴回数確認結果</h3>
+                <button class="modal-close btn-icon" style="background: none; border: none; color: white; cursor: pointer;">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="checkResultContent"></div>
+            </div>
+            <div class="p-4 border-t flex justify-end">
+                <button class="modal-close btn btn-dark">確認しました</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast hidden"></div>
+</div>
+
+<script>
+/**
+ * Bathing Schedule Application - Single File Vanilla JS Version
+ */
+
+// --- Constants & Data ---
+const BG_COLOR_MAP = {
+    pink:   { bg: 'bg-pink', label: 'ピンク', hex: '#fee2e2' },
+    blue:   { bg: 'bg-blue', label: '青', hex: '#dbeafe' },
+    yellow: { bg: 'bg-yellow', label: '黄', hex: '#fef08a' },
+    green:  { bg: 'bg-green', label: '緑', hex: '#bbf7d0' },
+    purple: { bg: 'bg-purple', label: '紫', hex: '#f3e8ff' },
+    gray:   { bg: 'bg-gray', label: '灰', hex: '#f3f4f6' },
+    white:  { bg: 'bg-white', label: '白', hex: '#ffffff' },
+    orange: { bg: 'bg-orange', label: '橙', hex: '#fed7aa' },
+};
+
+const INITIAL_RESIDENTS = [
+  '駒田守彦', '窪山裕子', '水谷藤子', '山田三枝子',
+  '吉田すえ', '田中淑子', '家木洋子', '松本美好',
+  '中村弘', '増田久雄', '西', '太田', '星合', '谷口', '紀平'
+];
+
+const INITIAL_MASTER = {
+  0: { // Sun
+    slot1: { text: '駒田守彦<br>窪山裕子<br>2東寺嶋', color: 'pink' },
+    slot2: { text: '水谷藤子<br>山田三枝子', color: 'gray' },
+    slot3: { text: '', color: 'white' },
+  },
+  1: { // Mon
+    slot1: { text: '吉田すえ<br>田中淑子<br>西 太田', color: 'pink' },
+    slot2: { text: '家木洋子<br>西①星合<br>谷口', color: 'pink' }, 
+    slot3: { text: '訪問販売', color: 'white' }, 
+  },
+  2: { // Tue
+    slot1: { text: '中村弘<br>増田久雄', color: 'gray' },
+    slot2: { text: 'リハビリ<br>清掃<br>(24Hシート作成)', color: 'yellow' },
+    slot3: { text: '', color: 'white' },
+  },
+  3: { // Wed
+    slot1: { text: '駒田守彦<br>窪山裕子<br>2東寺嶋', color: 'pink' },
+    slot2: { text: '松本美好<br>西 紀平', color: 'pink' },
+    slot3: { text: 'ヒロタ', color: 'white' },
+  },
+  4: { // Thu
+    slot1: { text: '水谷藤子<br>山田三枝子', color: 'gray' },
+    slot2: { text: '家木洋子<br>西①星合<br>谷口', color: 'pink' },
+    slot3: { text: '', color: 'white' },
+  },
+  5: { // Fri
+    slot1: { text: 'リハビリ<br>吉田すえ<br>田中淑子', color: 'pink' }, 
+    slot2: { text: 'シーツ交換', color: 'yellow' },
+    slot3: { text: '回診', color: 'white' },
+  },
+  6: { // Sat
+    slot1: { text: '松本美好<br>西 紀平', color: 'pink' },
+    slot2: { text: '中村弘<br>増田久雄', color: 'gray' },
+    slot3: { text: '精神科', color: 'white' },
+  },
+  weeklyFooters: {
+    0: { text: '衛生チェック(　)', color: 'yellow' },
+    1: { text: '衛生チェック(　)', color: 'yellow' },
+    2: { text: '衛生チェック(　)', color: 'yellow' },
+    3: { text: '衛生チェック(　)', color: 'yellow' },
+    4: { text: '衛生チェック(　)', color: 'yellow' },
+  }
+};
+
+// --- App Class ---
+class App {
+    constructor() {
+        this.state = {
+            currentDate: new Date(2026, 1, 1),
+            masterSchedule: JSON.parse(localStorage.getItem('bathing_master_v2')) || INITIAL_MASTER,
+            overrides: JSON.parse(localStorage.getItem('bathing_overrides_v2')) || {},
+            weeklyData: JSON.parse(localStorage.getItem('bathing_weekly_v2')) || {},
+            residentList: JSON.parse(localStorage.getItem('bathing_residents_v2')) || INITIAL_RESIDENTS,
+            facilityName: localStorage.getItem('bathing_facility_name_v2') || '2 階 南 棟',
+            manualUpdateDate: localStorage.getItem('bathing_update_date_v2') || (() => { const d = new Date(); return `${d.getMonth()+1}/${d.getDate()}`; })(),
+        };
+
+        this.history = [];
+        this.historyIndex = -1;
+        this.saveHistory(); // Initial state
+
+        this.editingTarget = null; // { type, key, slot?, weekIdx? }
+
+        this.init();
+    }
+
+    init() {
+        this.cacheDOM();
+        this.bindEvents();
+        this.render();
+    }
+
+    cacheDOM() {
+        this.dom = {
+            calendarRoot: document.getElementById('calendarRoot'),
+            currentMonthLabel: document.getElementById('currentMonthLabel'),
+            facilityNameInput: document.getElementById('facilityNameInput'),
+            updateDateDisplay: document.getElementById('updateDateDisplay'),
+            printUpdateDate: document.getElementById('printUpdateDate'),
+            
+            // Modals
+            editModal: document.getElementById('editModal'),
+            configModal: document.getElementById('configModal'),
+            checkModal: document.getElementById('checkModal'),
+            
+            // Edit Modal Inputs
+            modalEditor: document.getElementById('modalEditor'),
+            colorPicker: document.getElementById('colorPicker'),
+            modalResidentSelect: document.getElementById('modalResidentSelect'),
+            propagateCheck: document.getElementById('propagateCheck'),
+            weekPropagateContainer: document.getElementById('weekPropagateContainer'),
+            
+            // Toast
+            toast: document.getElementById('toast'),
+            
+            // Config
+            masterScheduleGrid: document.getElementById('masterScheduleGrid'),
+            residentList: document.getElementById('residentList'),
+            newResidentInput: document.getElementById('newResidentInput'),
+        };
+    }
+
+    bindEvents() {
+        // Nav
+        document.getElementById('btnPrevMonth').onclick = () => this.changeMonth(-1);
+        document.getElementById('btnNextMonth').onclick = () => this.changeMonth(1);
+        
+        // Header Actions
+        document.getElementById('btnUndo').onclick = () => this.undo();
+        document.getElementById('btnRedo').onclick = () => this.redo();
+        document.getElementById('btnPrint').onclick = () => {
+            this.showToast('印刷画面を準備中...');
+            setTimeout(() => window.print(), 100);
+        };
+        document.getElementById('btnCheck').onclick = () => this.runCheck();
+        document.getElementById('btnConfig').onclick = () => this.openConfig();
+
+        // Facility Name & Date
+        this.dom.facilityNameInput.onblur = (e) => this.updateFacilityName(e.target.value);
+        this.dom.updateDateDisplay.onclick = () => {
+            const newVal = prompt('更新日を入力してください', this.state.manualUpdateDate);
+            if(newVal) this.updateUpdateDate(newVal);
+        };
+
+        // Modals
+        document.querySelectorAll('.modal-close').forEach(btn => {
+            btn.onclick = () => this.closeModals();
+        });
+        document.getElementById('modalSaveBtn').onclick = () => this.saveEdit();
+        document.getElementById('configSaveBtn').onclick = () => this.saveConfig();
+
+        // Edit Modal
+        this.dom.modalResidentSelect.onchange = (e) => {
+            if(e.target.value) {
+                this.insertHtmlToEditor(e.target.value);
+                e.target.value = '';
+            }
+        };
+
+        // Config Modal
+        document.getElementById('btnAddResident').onclick = () => this.addResident();
+        document.getElementById('newResidentInput').onkeydown = (e) => {
+            if(e.key === 'Enter') this.addResident();
+        };
+        document.getElementById('btnExportJson').onclick = () => this.exportJson();
+        document.getElementById('btnImportJson').onclick = () => document.getElementById('fileImport').click();
+        document.getElementById('fileImport').onchange = (e) => this.importJson(e);
+        document.getElementById('btnExportHtml').onclick = () => this.exportHtml();
+    }
+
+    // --- History Management ---
+    saveHistory() {
+        const snapshot = JSON.parse(JSON.stringify({
+            overrides: this.state.overrides,
+            weeklyData: this.state.weeklyData,
+            masterSchedule: this.state.masterSchedule,
+            residentList: this.state.residentList
+        }));
+
+        // Remove future history if we are in the middle
+        if (this.historyIndex < this.history.length - 1) {
+            this.history = this.history.slice(0, this.historyIndex + 1);
+        }
+
+        // Avoid dupes
+        const current = this.history[this.historyIndex];
+        if (current && JSON.stringify(current) === JSON.stringify(snapshot)) return;
+
+        this.history.push(snapshot);
+        if (this.history.length > 50) this.history.shift();
+        this.historyIndex = this.history.length - 1;
+        
+        this.updateUndoRedoButtons();
+    }
+
+    undo() {
+        if (this.historyIndex > 0) {
+            this.historyIndex--;
+            this.restoreHistory();
+        }
+    }
+
+    redo() {
+        if (this.historyIndex < this.history.length - 1) {
+            this.historyIndex++;
+            this.restoreHistory();
+        }
+    }
+
+    restoreHistory() {
+        const data = this.history[this.historyIndex];
+        this.state.overrides = JSON.parse(JSON.stringify(data.overrides));
+        this.state.weeklyData = JSON.parse(JSON.stringify(data.weeklyData));
+        this.state.masterSchedule = JSON.parse(JSON.stringify(data.masterSchedule));
+        this.state.residentList = JSON.parse(JSON.stringify(data.residentList));
+        
+        this.saveToLocalStorage(); // Sync storage
+        this.render();
+        this.updateUndoRedoButtons();
+        this.showToast('状態を復元しました');
+    }
+
+    updateUndoRedoButtons() {
+        document.getElementById('btnUndo').disabled = this.historyIndex <= 0;
+        document.getElementById('btnRedo').disabled = this.historyIndex >= this.history.length - 1;
+    }
+
+    // --- Rendering ---
+    render() {
+        this.renderHeaderInfo();
+        this.renderCalendar();
+    }
+
+    renderHeaderInfo() {
+        const { currentDate, facilityName, manualUpdateDate } = this.state;
+        this.dom.currentMonthLabel.textContent = `${currentDate.getFullYear()}年 ${currentDate.getMonth() + 1}月`;
+        this.dom.facilityNameInput.value = facilityName;
+        this.dom.updateDateDisplay.textContent = `${manualUpdateDate} 更新`;
+        this.dom.printUpdateDate.textContent = `${manualUpdateDate} 更新`;
+        
+        document.getElementById('headerDateLabel').textContent = `　月間予定表（令和 ${currentDate.getFullYear() - 2018} 年 ${currentDate.getMonth() + 1} 月）`;
+    }
+
+    renderCalendar() {
+        const { currentDate, overrides, masterSchedule, weeklyData } = this.state;
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        
+        // Generate weeks
+        const weeks = [];
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        let currentWeek = new Array(firstDay.getDay()).fill(null);
+        
+        for (let d = 1; d <= lastDay.getDate(); d++) {
+            currentWeek.push(new Date(year, month, d));
+            if (currentWeek.length === 7) {
+                weeks.push(currentWeek);
+                currentWeek = [];
+            }
+        }
+        if (currentWeek.length > 0) {
+            while (currentWeek.length < 7) currentWeek.push(null);
+            weeks.push(currentWeek);
+        }
+
+        // Build HTML
+        let html = `
+            <div class="header-row">
+                ${['日','月','火','水','木','金','土'].map((d, i) => 
+                    `<div class="header-cell ${i===0?'text-red':i===6?'text-blue':''}">${d}曜日</div>`
+                ).join('')}
+            </div>
+        `;
+
+        weeks.forEach((week, weekIdx) => {
+            // Determine Sunday date for the week key
+            const sun = week.find(d => d) || new Date();
+            const sundayRef = new Date(sun);
+            sundayRef.setDate(sun.getDate() - sun.getDay());
+            const weekKey = sundayRef.toISOString().split('T')[0];
+
+            // Weekly Footer Data
+            let footerData = weeklyData[weekKey];
+            if (!footerData) {
+                footerData = masterSchedule.weeklyFooters?.[weekIdx] || masterSchedule.weeklyFooter || { text: '衛生チェック(　)', color: 'yellow' };
+            }
+
+            html += `<div class="week-row">
+                <div class="days-grid">`;
+            
+            week.forEach((date, dayIdx) => {
+                if (!date) {
+                    html += `<div class="day-cell" style="background: #f8fafc;"></div>`;
+                    return;
+                }
+
+                const dateKey = date.toISOString().split('T')[0];
+                const dayOfWeek = date.getDay();
+                
+                // Merge Master & Override
+                const dayData = {
+                    slot1: overrides[dateKey]?.slot1 || masterSchedule[dayOfWeek].slot1,
+                    slot2: overrides[dateKey]?.slot2 || masterSchedule[dayOfWeek].slot2,
+                    slot3: overrides[dateKey]?.slot3 || masterSchedule[dayOfWeek].slot3,
+                };
+
+                html += `
+                    <div class="day-cell">
+                        <div class="date-label ${dayIdx===0?'text-red':dayIdx===6?'text-blue':''}">${date.getDate()}</div>
+                        <div class="slot ${BG_COLOR_MAP[dayData.slot1.color].bg}" onclick="app.openEditModal('day', '${dateKey}', 'slot1', ${weekIdx})">
+                            ${dayData.slot1.text}
+                        </div>
+                        <div class="slot ${BG_COLOR_MAP[dayData.slot2.color].bg}" onclick="app.openEditModal('day', '${dateKey}', 'slot2', ${weekIdx})">
+                            ${dayData.slot2.text}
+                        </div>
+                        <div class="slot ${BG_COLOR_MAP[dayData.slot3.color].bg} text-red font-bold" onclick="app.openEditModal('day', '${dateKey}', 'slot3', ${weekIdx})">
+                            ${dayData.slot3.text}
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>
+                <div class="footer-cell ${BG_COLOR_MAP[footerData.color].bg}" onclick="app.openEditModal('week', '${weekKey}', null, ${weekIdx})">
+                    ${footerData.text}
+                </div>
+            </div>`;
+        });
+
+        this.dom.calendarRoot.innerHTML = html;
+    }
+
+    // --- Actions ---
+
+    changeMonth(diff) {
+        const d = this.state.currentDate;
+        this.state.currentDate = new Date(d.getFullYear(), d.getMonth() + diff, 1);
+        this.render();
+    }
+
+    updateFacilityName(name) {
+        this.state.facilityName = name;
+        localStorage.setItem('bathing_facility_name_v2', name);
+    }
+
+    updateUpdateDate(date) {
+        this.state.manualUpdateDate = date;
+        localStorage.setItem('bathing_update_date_v2', date);
+        this.renderHeaderInfo();
+    }
+
+    // --- Editing ---
+
+    openEditModal(type, key, slot, weekIdx) {
+        this.editingTarget = { type, key, slot, weekIdx };
+        
+        let initialData;
+        if (type === 'day') {
+            const dayOfWeek = new Date(key).getDay();
+            const override = this.state.overrides[key]?.[slot];
+            const master = this.state.masterSchedule[dayOfWeek][slot];
+            initialData = override || master;
+            this.dom.weekPropagateContainer.classList.add('hidden');
+            document.getElementById('residentSelectContainer').classList.remove('hidden');
+        } else {
+            // Week
+            const override = this.state.weeklyData[key];
+            const master = this.state.masterSchedule.weeklyFooters?.[weekIdx] || { text: '', color: 'yellow' };
+            initialData = override || master;
+            this.dom.weekPropagateContainer.classList.remove('hidden');
+            document.getElementById('residentSelectContainer').classList.add('hidden');
+            this.dom.propagateCheck.checked = false;
+        }
+
+        this.dom.modalEditor.innerHTML = initialData.text;
+        this.renderColorPicker(initialData.color);
+        this.renderResidentSelect();
+
+        this.dom.editModal.classList.remove('hidden');
+    }
+
+    renderColorPicker(activeColor) {
+        let html = '';
+        Object.keys(BG_COLOR_MAP).forEach(colorKey => {
+            const isActive = colorKey === activeColor;
+            html += `<div class="color-btn ${BG_COLOR_MAP[colorKey].bg} ${isActive?'active':''}" onclick="app.selectColor('${colorKey}')" title="${BG_COLOR_MAP[colorKey].label}"></div>`;
+        });
+        this.dom.colorPicker.innerHTML = html;
+        this.editingColor = activeColor;
+    }
+
+    selectColor(color) {
+        this.editingColor = color;
+        this.renderColorPicker(color);
+    }
+
+    renderResidentSelect() {
+        const select = this.dom.modalResidentSelect;
+        select.innerHTML = '<option value="">名簿から追加...</option>';
+        this.state.residentList.forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            select.appendChild(opt);
+        });
+    }
+
+    insertHtmlToEditor(text) {
+        this.dom.modalEditor.focus();
+        const html = `${text}<br>`;
+        document.execCommand('insertHTML', false, html);
+    }
+
+    saveEdit() {
+        const text = this.cleanHtml(this.dom.modalEditor.innerHTML);
+        const color = this.editingColor;
+        const { type, key, slot, weekIdx } = this.editingTarget;
+
+        if (type === 'day') {
+            if (!this.state.overrides[key]) this.state.overrides[key] = {};
+            this.state.overrides[key][slot] = { text, color };
+        } else {
+            this.state.weeklyData[key] = { text, color };
+            if (this.dom.propagateCheck.checked) {
+                if (!this.state.masterSchedule.weeklyFooters) this.state.masterSchedule.weeklyFooters = {};
+                this.state.masterSchedule.weeklyFooters[weekIdx] = { text, color };
+                this.showToast(`第${weekIdx + 1}週の標準設定を更新しました`);
+            }
+        }
+
+        this.saveToLocalStorage();
+        this.saveHistory();
+        this.render();
+        this.closeModals();
+        this.showToast('保存しました');
+    }
+
+    // --- Config ---
+
+    openConfig() {
+        this.renderConfigResidents();
+        this.renderConfigMaster();
+        this.dom.configModal.classList.remove('hidden');
+    }
+
+    renderConfigResidents() {
+        const container = this.dom.residentList;
+        container.innerHTML = '';
+        this.state.residentList.forEach(name => {
+            const el = document.createElement('div');
+            el.className = 'bg-white border p-2 rounded flex items-center gap-2';
+            el.innerHTML = `
+                <span>${name}</span>
+                <button class="text-red font-bold" onclick="app.removeResident('${name}')">✕</button>
+            `;
+            container.appendChild(el);
+        });
+    }
+
+    addResident() {
+        const name = this.dom.newResidentInput.value.trim();
+        if (name && !this.state.residentList.includes(name)) {
+            this.state.residentList.push(name);
+            this.dom.newResidentInput.value = '';
+            this.renderConfigResidents();
+        }
+    }
+
+    removeResident(name) {
+        this.state.residentList = this.state.residentList.filter(n => n !== name);
+        this.renderConfigResidents();
+    }
+
+    renderConfigMaster() {
+        const container = this.dom.masterScheduleGrid;
+        container.innerHTML = '';
+        
+        const days = ['日','月','火','水','木','金','土'];
+        days.forEach((day, idx) => {
+            const dayData = this.state.masterSchedule[idx];
+            let html = `
+                <div class="border p-4 rounded bg-white">
+                    <h5 class="font-bold border-b mb-2 ${idx===0?'text-red':idx===6?'text-blue':''}">${day}曜日</h5>
+                    <div class="grid gap-4" style="grid-template-columns: repeat(3, 1fr);">
+            `;
+            
+            ['slot1', 'slot2', 'slot3'].forEach(slot => {
+                const data = dayData[slot];
+                html += `
+                    <div>
+                        <label class="text-xs text-light block mb-1 uppercase">${slot}</label>
+                        <textarea class="w-full text-xs p-1 border rounded mb-1" rows="3" onchange="app.updateMasterData(${idx}, '${slot}', 'text', this.value)">${data.text.replace(/<br>/g, '\n')}</textarea>
+                        <select class="w-full text-xs p-1 border rounded" onchange="app.updateMasterData(${idx}, '${slot}', 'color', this.value)">
+                            ${Object.keys(BG_COLOR_MAP).map(k => `<option value="${k}" ${k===data.color?'selected':''}>${BG_COLOR_MAP[k].label}</option>`).join('')}
+                        </select>
+                    </div>
+                `;
+            });
+            
+            html += `</div></div>`;
+            container.insertAdjacentHTML('beforeend', html);
+        });
+    }
+
+    updateMasterData(dayIdx, slot, field, value) {
+        if (field === 'text') value = value.replace(/\n/g, '<br>');
+        this.state.masterSchedule[dayIdx][slot][field] = value;
+    }
+
+    saveConfig() {
+        this.saveToLocalStorage();
+        this.saveHistory();
+        this.render();
+        this.closeModals();
+        this.showToast('設定を保存しました');
+    }
+
+    // --- Check ---
+
+    runCheck() {
+        const { currentDate, overrides, masterSchedule, residentList } = this.state;
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        const lastDate = new Date(year, month + 1, 0).getDate();
+        
+        const result = [];
+        let currentWeekStart = 1;
+        let weekIndex = 1;
+
+        while (currentWeekStart <= lastDate) {
+            const startDateObj = new Date(year, month, currentWeekStart);
+            let currentWeekEnd = currentWeekStart + (6 - startDateObj.getDay());
+            if (currentWeekEnd > lastDate) currentWeekEnd = lastDate;
+
+            const counts = {};
+            residentList.forEach(r => counts[r] = 0);
+
+            for (let d = currentWeekStart; d <= currentWeekEnd; d++) {
+                const date = new Date(year, month, d);
+                const dateKey = date.toISOString().split('T')[0];
+                const dayOfWeek = date.getDay();
+                
+                const s1 = overrides[dateKey]?.slot1?.text || masterSchedule[dayOfWeek].slot1.text;
+                const s2 = overrides[dateKey]?.slot2?.text || masterSchedule[dayOfWeek].slot2.text;
+                const combined = (s1 + s2).replace(/<[^>]+>/g, '');
+
+                residentList.forEach(name => {
+                    if (combined.includes(name)) counts[name]++;
+                });
+            }
+
+            const missing = residentList
+                .filter(name => counts[name] < 2)
+                .map(name => ({ name, count: counts[name] }));
+
+            if (missing.length > 0) {
+                result.push({ week: weekIndex, start: currentWeekStart, end: currentWeekEnd, missing });
+            }
+
+            currentWeekStart = currentWeekEnd + 1;
+            weekIndex++;
+        }
+
+        // Render Result
+        const container = document.getElementById('checkResultContent');
+        if (result.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-8">
+                    <div style="font-size: 40px; color: #059669;">✔</div>
+                    <h4 class="font-bold text-lg mt-2">問題ありません</h4>
+                    <p class="text-light">全員が各週2回以上入浴予定です。</p>
+                </div>
+            `;
+        } else {
+            let html = '<p class="p-2 bg-yellow rounded mb-4 text-sm font-bold">以下の入所者は週2回未満です:</p>';
+            result.forEach(r => {
+                html += `
+                    <div class="mb-4 border rounded p-2">
+                        <div class="font-bold text-xs bg-gray-800 text-white p-1 rounded mb-2">
+                            第${r.week}週 (${month+1}/${r.start} ~ ${r.end})
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            ${r.missing.map(m => `
+                                <div class="flex justify-between bg-red-50 p-1 rounded border border-red-100">
+                                    <span class="font-bold">${m.name}</span>
+                                    <span class="bg-red-600 text-white px-2 rounded-full text-xs font-bold">${m.count}回</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        this.dom.checkModal.classList.remove('hidden');
+    }
+
+    // --- IO ---
+
+    exportJson() {
+        const data = JSON.stringify(this.state, null, 2);
+        const blob = new Blob([data], { type: 'application/json' });
+        this.downloadFile(blob, `bathing-schedule-${Date.now()}.json`);
+    }
+
+    importJson(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            try {
+                const data = JSON.parse(ev.target.result);
+                // Merge state
+                if(data.currentDate) this.state.currentDate = new Date(data.currentDate);
+                if(data.masterSchedule) this.state.masterSchedule = data.masterSchedule;
+                if(data.overrides) this.state.overrides = data.overrides;
+                if(data.weeklyData) this.state.weeklyData = data.weeklyData;
+                if(data.residentList) this.state.residentList = data.residentList;
+                
+                this.saveToLocalStorage();
+                this.render();
+                this.closeModals();
+                this.showToast('読み込み完了');
+            } catch (err) {
+                alert('読み込みエラー: ' + err);
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    exportHtml() {
+        const styles = document.querySelector('style').innerHTML;
+        const container = this.dom.calendarRoot.innerHTML;
+        const { currentDate, facilityName, manualUpdateDate } = this.state;
+        
+        const html = `<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>${facilityName} 入浴予定表</title>
+<style>${styles}</style>
+<style>
+  body { background: white; padding: 20px; }
+  .no-print { display: none !important; }
+  /* Force print styling */
+  .schedule-container { border: 2px solid black; }
+  .header-cell, .day-cell, .week-row, .footer-cell, .date-label, .slot { border-color: black; }
+</style>
+</head>
+<body>
+  <div class="text-center mb-6">
+    <h2 class="font-bold" style="border-bottom: 2px solid #000; display: inline-block; padding: 0 40px 8px 40px; margin-bottom: 4px; font-size: 24px;">
+      ${facilityName}　月間予定表（令和 ${currentDate.getFullYear() - 2018} 年 ${currentDate.getMonth() + 1} 月）
+    </h2>
+    <div style="text-align: right; color: red; font-weight: bold; font-size: 12px;">${manualUpdateDate} 更新</div>
+  </div>
+  <div class="schedule-container">${container}</div>
+</body></html>`;
+
+        const blob = new Blob([html], { type: 'text/html' });
+        this.downloadFile(blob, `${currentDate.getFullYear()}-${currentDate.getMonth()+1}_schedule.html`);
+    }
+
+    downloadFile(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // --- Utils ---
+
+    saveToLocalStorage() {
+        localStorage.setItem('bathing_master_v2', JSON.stringify(this.state.masterSchedule));
+        localStorage.setItem('bathing_overrides_v2', JSON.stringify(this.state.overrides));
+        localStorage.setItem('bathing_weekly_v2', JSON.stringify(this.state.weeklyData));
+        localStorage.setItem('bathing_residents_v2', JSON.stringify(this.state.residentList));
+    }
+
+    cleanHtml(html) {
+        return html
+            .replace(/<div>/g, '<br>')
+            .replace(/<\/div>/g, '')
+            .replace(/<p>/g, '')
+            .replace(/<\/p>/g, '<br>')
+            .replace(/(<br>){2,}/g, '<br>')
+            .replace(/^<br>|<br>$/g, '');
+    }
+
+    closeModals() {
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.classList.add('hidden'));
+    }
+
+    showToast(msg) {
+        const toast = this.dom.toast;
+        toast.textContent = msg;
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 3000);
+    }
+}
+
+// Start App
+const app = new App();
+window.app = app; // Expose for inline onclick handlers
+
+</script>
 </body>
 </html>
