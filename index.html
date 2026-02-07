@@ -1,592 +1,1052 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>入浴予定表管理</title>
+    <title>入浴予定表管理システム</title>
     <style>
-        /* --- Base Styles --- */
+        /* --- 1. Variables & Reset --- */
         :root {
             --primary: #2563eb;
             --primary-dark: #1d4ed8;
-            --bg-gray: #f8fafc;
-            --border: #e2e8f0;
-            --text: #1e293b;
-            --text-light: #64748b;
+            --secondary: #64748b;
+            --danger: #dc2626;
+            --success: #059669;
+            --warning: #d97706;
+            --bg-body: #f1f5f9;
+            --bg-surface: #ffffff;
+            --border: #cbd5e1;
             
-            /* Color Palette (Tailwind-like) */
-            --c-red-100: #fee2e2;
-            --c-red-600: #dc2626;
-            --c-blue-100: #dbeafe;
-            --c-blue-600: #2563eb;
-            --c-yellow-200: #fef08a;
-            --c-green-200: #bbf7d0;
-            --c-purple-100: #f3e8ff;
-            --c-gray-100: #f3f4f6;
-            --c-white: #ffffff;
-            --c-orange-200: #fed7aa;
+            /* Palette matched to screenshots (Sharper Colors, Text Black) */
+            --c-pink-bg: #ffe0e0; --c-pink-text: #000000;
+            --c-blue-bg: #e3f2fd; --c-blue-text: #000000;
+            --c-yellow-bg: #fff9c4; --c-yellow-text: #000000;
+            --c-green-bg: #e8f5e9; --c-green-text: #000000;
+            --c-purple-bg: #f3e5f5; --c-purple-text: #000000;
+            --c-gray-bg: #f5f5f5; --c-gray-text: #000000;
+            --c-white-bg: #ffffff; --c-white-text: #000000;
+            --c-orange-bg: #ffe0b2; --c-orange-text: #000000;
         }
 
+        * { box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: var(--bg-gray);
-            color: var(--text);
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: var(--bg-body);
+            color: #000; /* Darker base color */
             margin: 0;
             padding: 0;
-            padding-bottom: 80px; /* Footer space */
+            font-size: 14px;
         }
 
-        *, *::before, *::after {
-            box-sizing: border-box;
-        }
+        button, input, select, textarea { font-family: inherit; }
 
-        /* --- Utilities --- */
-        .hidden { display: none !important; }
+        /* --- 2. Utility Classes (Tailwind-ish) --- */
         .flex { display: flex; }
         .flex-col { flex-direction: column; }
+        .flex-wrap { flex-wrap: wrap; }
         .items-center { align-items: center; }
+        .items-start { align-items: flex-start; }
         .justify-between { justify-content: space-between; }
         .justify-center { justify-content: center; }
         .justify-end { justify-content: flex-end; }
         .gap-1 { gap: 4px; }
         .gap-2 { gap: 8px; }
+        .gap-3 { gap: 12px; }
         .gap-4 { gap: 16px; }
+        .gap-8 { gap: 32px; }
+        .p-0 { padding: 0; }
+        .p-1 { padding: 4px; }
         .p-2 { padding: 8px; }
+        .p-3 { padding: 12px; }
         .p-4 { padding: 16px; }
+        .px-2 { padding-left: 8px; padding-right: 8px; }
+        .px-3 { padding-left: 12px; padding-right: 12px; }
         .px-4 { padding-left: 16px; padding-right: 16px; }
+        .py-1 { padding-top: 4px; padding-bottom: 4px; }
         .py-2 { padding-top: 8px; padding-bottom: 8px; }
+        .py-3 { padding-top: 12px; padding-bottom: 12px; }
+        .m-0 { margin: 0; }
+        .mt-auto { margin-top: auto; }
+        .mt-0\.5 { margin-top: 2px; }
         .mt-2 { margin-top: 8px; }
         .mt-4 { margin-top: 16px; }
+        .mb-1 { margin-bottom: 4px; }
         .mb-2 { margin-bottom: 8px; }
+        .mb-3 { margin-bottom: 12px; }
         .mb-4 { margin-bottom: 16px; }
-        .text-center { text-align: center; }
-        .font-bold { font-weight: bold; }
-        .text-sm { font-size: 14px; }
-        .text-xs { font-size: 12px; }
+        .mb-6 { margin-bottom: 24px; }
+        .mb-8 { margin-bottom: 32px; }
         .w-full { width: 100%; }
+        .h-full { height: 100%; }
+        .w-8 { width: 32px; }
+        .h-8 { height: 32px; }
+        .w-1-3 { width: 33.333%; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-left { text-align: left; }
+        .font-bold { font-weight: 700; }
+        .text-xs { font-size: 11px; }
+        .text-sm { font-size: 12px; }
+        .text-lg { font-size: 18px; }
+        .text-xl { font-size: 20px; }
+        .text-3xl { font-size: 32px; }
+        .text-4xl { font-size: 42px; }
+        .text-5xl { font-size: 48px; }
+        .text-base { font-size: 16px; }
+        .rounded { border-radius: 6px; }
+        .rounded-full { border-radius: 9999px; }
+        .rounded-lg { border-radius: 8px; }
+        .border { border: 1px solid var(--border); }
+        .border-b { border-bottom: 1px solid var(--border); }
+        .bg-white { background-color: white; }
+        .bg-gray-50 { background-color: #f9fafb; }
+        .bg-gray-100 { background-color: #f3f4f6; }
+        .bg-slate-50 { background-color: #f8fafc; }
+        .hover\:bg-gray-100:hover { background-color: #f3f4f6; }
+        .shadow { box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px 0 rgba(0,0,0,0.06); }
+        .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+        .hidden { display: none !important; }
         .cursor-pointer { cursor: pointer; }
+        .overflow-hidden { overflow: hidden; }
 
-        /* --- Components --- */
+        /* Text Colors - Added !important to ensure override on table headers */
+        .text-red { color: #d32f2f !important; }
+        .text-blue { color: #1976d2 !important; }
+        .text-gray { color: #424242; }
+        .text-gray-400 { color: #94a3b8; }
+        .text-gray-500 { color: #64748b; }
+        .text-gray-600 { color: #475569; }
+        .text-gray-700 { color: #334155; }
+        .text-gray-800 { color: #1f2937; }
+        .text-red-600 { color: #dc2626; }
+        .text-red-700 { color: #b91c1c; }
+        .text-red-800 { color: #991b1b; }
+        .text-red-900 { color: #7f1d1d; }
+        .text-blue-500 { color: #3b82f6; }
+        .text-blue-600 { color: #2563eb; }
+        .text-blue-700 { color: #1d4ed8; }
+        .text-blue-900 { color: #1e3a8a; }
+        .text-orange-500 { color: #f97316; }
+        .text-white { color: white; }
+
+        .border-gray-200 { border-color: #e2e8f0; }
+
+        /* --- 3. Component Styles --- */
+        
+        /* Header */
         header {
-            background-color: #0f172a;
+            background-color: #1e293b;
             color: white;
-            padding: 1rem;
+            padding: 12px 20px;
             position: sticky;
             top: 0;
             z-index: 50;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
 
+        /* Buttons */
         .btn {
             display: inline-flex;
             align-items: center;
             gap: 6px;
             padding: 8px 16px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 12px;
+            border-radius: 6px;
+            font-weight: 600;
             border: none;
             cursor: pointer;
             transition: all 0.2s;
-            background-color: white;
-            color: var(--text);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            font-size: 13px;
+            background: white;
+            color: #334155;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
-        .btn:hover { background-color: #f1f5f9; }
-        .btn:active { transform: scale(0.95); }
+        .btn:hover { background-color: #f8fafc; transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .btn-icon { padding: 8px; border-radius: 8px; }
 
         .btn-primary { background-color: var(--primary); color: white; }
         .btn-primary:hover { background-color: var(--primary-dark); }
-
-        .btn-success { background-color: #059669; color: white; }
-        .btn-success:hover { background-color: #047857; }
-
-        .btn-danger { background-color: #dc2626; color: white; }
+        
+        .btn-danger { background-color: var(--danger); color: white; }
         .btn-danger:hover { background-color: #b91c1c; }
 
-        .btn-dark { background-color: #334155; color: white; }
-        .btn-dark:hover { background-color: #1e293b; }
+        .btn-icon { padding: 6px; border-radius: 6px; }
+        .btn-dark { background-color: #334155; color: white; border: 1px solid #475569; }
+        .btn-dark:hover { background-color: #475569; }
 
-        /* --- Calendar Grid --- */
+        /* Calendar Grid */
         .container {
-            max-width: 210mm; /* A4 width approx */
-            margin: 0 auto;
-            padding: 20px;
+            max-width: 1200px; /* A4-ish optimized width */
+            margin: 20px auto;
             background: white;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            padding: 40px;
+            min-height: 297mm; /* A4 height */
         }
 
-        .schedule-container {
-            border: 2px solid #0f172a;
-            background: white;
-            display: flex;
-            flex-direction: column;
+        .calendar-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #000; /* Sharp black border */
+            table-layout: fixed; /* レイアウト崩れ防止：列幅を固定 */
         }
 
-        .header-row {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            border-bottom: 2px solid #0f172a;
+        .calendar-table th, .calendar-table td {
+            border: 1px solid #000; /* Sharp black border */
         }
 
-        .header-cell {
+        .calendar-table th {
+            background-color: #fff;
+            padding: 10px;
             text-align: center;
-            padding: 6px 0;
-            font-size: 14px;
+            border-bottom: 1px solid #000;
+            width: 14.28%; /* 7 columns */
+            font-size: 16px;
+            color: #000; /* Default color is black */
             font-weight: bold;
-            border-right: 1px solid #0f172a;
-            background-color: #f8fafc;
         }
-        .header-cell:last-child { border-right: none; }
-        .text-red { color: var(--c-red-600); }
-        .text-blue { color: var(--c-blue-600); }
+        
+        .calendar-table td {
+            padding: 0;
+            vertical-align: top;
+            border-left: 1px solid #000;
+            border-right: 1px solid #000;
+            height: 1px; /* Required to make child height:100% work for equal height rows */
+        }
 
-        .week-row {
+        /* 
+           Calendar Row Layout Implementation (3 TRs per week)
+           This ensures that slots align horizontally across the week
+        */
+        .cal-row-1 td { 
+            border-top: 1px solid #000; 
+            border-bottom: 1px dashed #333; 
+            vertical-align: top; 
+        }
+        .cal-row-2 td { 
+            border-top: none; /* Let previous dashed border show */
+            border-bottom: 1px dashed #333; 
+            vertical-align: top; 
+        }
+        .cal-row-3 td { 
+            border-top: none;
+            border-bottom: 1px solid #000; 
+            vertical-align: bottom; /* Bottom alignment for the last slot */
+        }
+
+        /* 
+           Layout for cell internals 
+           Using flex to stretch content to full height of TD
+        */
+        .cell-inner {
+            height: 100%;
+            min-height: 100%;
             display: flex;
             flex-direction: column;
-            border-bottom: 1px solid #0f172a;
         }
-        .week-row:last-child { border-bottom: none; }
-
-        .days-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            flex-grow: 1;
-        }
-
-        .day-cell {
-            border-right: 1px solid #0f172a;
-            display: flex;
-            flex-direction: column;
-            min-height: 120px;
-        }
-        .day-cell:last-child { border-right: none; }
 
         .date-label {
             text-align: center;
-            font-size: 11px;
             font-weight: bold;
-            border-bottom: 1px solid #94a3b8;
-            background-color: white;
-            padding: 2px 0;
+            font-size: 16px;
+            height: 28px;
+            line-height: 28px;
+            margin: 0;
+            padding: 0;
+            color: #000;
+            border-bottom: 1px solid #000; /* Separator between date and slot 1 */
+            flex: 0 0 28px;
         }
+        .date-label.is-sunday { color: #d32f2f; }
+        .date-label.is-saturday { color: #1976d2; }
 
         .slot {
-            flex: 1;
             display: flex;
-            flex-direction: column;
+            flex-direction: column; /* 改行(div等)が縦に並ぶように修正 */
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 2px;
+            padding: 4px;
+            font-size: 13px; /* 指示に基づき大きく調整 (11px -> 13px) */
+            line-height: 1.25;
             cursor: pointer;
-            border-bottom: 1px dashed #cbd5e1;
-            font-size: 11px;
-            line-height: 1.15;
-            transition: background-color 0.1s;
+            transition: opacity 0.1s;
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: #000;
+            width: 100%;
+            /* Make slot fill the available space */
+            flex-grow: 1;
         }
-        .slot:hover { opacity: 0.8; }
-        .slot:last-child { border-bottom: none; }
+        
+        .slot:hover { opacity: 0.8; box-shadow: inset 0 0 100px rgba(0,0,0,0.05); }
 
-        .footer-cell {
-            border-top: 1px solid #0f172a;
+        .week-footer-row td {
+            padding: 0;
+            height: 28px; /* 指示に基づき中央揃えしやすく調整 */
+            border: 1px solid #000 !important; /* 確実に一周するように境界線を固定 */
+        }
+        
+        .week-footer-cell {
+            display: flex;
+            flex-direction: column; /* 改行(div等)が縦に並ぶように修正 */
+            align-items: center;
+            justify-content: center; /* 水平・垂直方向ともに中央揃え */
             text-align: center;
-            font-size: 10px;
+            font-weight: bold;
+            font-size: 12px;
             padding: 4px;
             cursor: pointer;
-            font-weight: 500;
-        }
-        .footer-cell:hover { opacity: 0.8; }
-
-        /* Background Colors */
-        .bg-pink { background-color: var(--c-red-100); }
-        .bg-blue { background-color: var(--c-blue-100); }
-        .bg-yellow { background-color: var(--c-yellow-200); }
-        .bg-green { background-color: var(--c-green-200); }
-        .bg-purple { background-color: var(--c-purple-100); }
-        .bg-gray { background-color: var(--c-gray-100); }
-        .bg-white { background-color: var(--c-white); }
-        .bg-orange { background-color: var(--c-orange-200); }
-
-        /* --- Modals --- */
-        .modal-backdrop {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(4px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
+            height: 100%;
+            width: 100%; /* colspanされたTD一杯に広がる */
         }
 
-        .modal {
+        /* Color Classes */
+        .bg-pink { background-color: var(--c-pink-bg); color: var(--c-pink-text); }
+        .bg-blue { background-color: var(--c-blue-bg); color: var(--c-blue-text); }
+        .bg-yellow { background-color: var(--c-yellow-bg); color: var(--c-yellow-text); }
+        .bg-green { background-color: var(--c-green-bg); color: var(--c-green-text); }
+        .bg-purple { background-color: var(--c-purple-bg); color: var(--c-purple-text); }
+        .bg-gray { background-color: var(--c-gray-bg); color: var(--c-gray-text); }
+        .bg-white { background-color: var(--c-white-bg); color: var(--c-white-text); }
+        .bg-orange { background-color: var(--c-orange-bg); color: var(--c-orange-text); }
+
+        /* Rich Editor Styles */
+        .rich-editor-box {
+            border: 1px solid var(--border);
+            border-radius: 6px;
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 480px;
             overflow: hidden;
-            animation: zoomIn 0.2s ease-out;
-        }
-        
-        .modal-lg {
-            max-width: 1000px;
-            height: 90vh;
             display: flex;
             flex-direction: column;
         }
-
-        .modal-header {
-            background-color: #1e293b;
-            color: white;
-            padding: 12px 16px;
+        .rich-editor-toolbar {
+            background: #f8fafc;
+            border-bottom: 1px solid var(--border);
+            padding: 6px 8px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-        }
-        
-        .modal-body {
-            padding: 24px;
-            overflow-y: auto;
-        }
-
-        .editor-area {
-            width: 100%;
-            min-height: 140px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 16px;
-            font-size: 14px;
-            text-align: center;
-            margin-bottom: 16px;
-        }
-        .editor-area:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .color-picker {
-            display: flex;
-            flex-wrap: wrap;
             gap: 8px;
         }
-        .color-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: 2px solid #e2e8f0;
+        .rich-editor-toolbar span {
+            font-size: 10px;
+            color: #64748b;
+            font-weight: bold;
+            margin-right: 2px;
+        }
+        .rich-tool-btn {
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
             cursor: pointer;
+            display: inline-block;
+            transition: transform 0.1s;
         }
-        .color-btn.active {
-            border-color: #1e293b;
-            transform: scale(1.1);
+        .rich-tool-btn:hover { transform: scale(1.1); z-index: 10; }
+        .rich-tool-btn.color-black { background-color: #000000; }
+        .rich-tool-btn.color-red { background-color: #dc2626; }
+        .rich-tool-btn.color-blue { background-color: #2563eb; }
+
+        .rich-editor-content {
+            padding: 8px 12px;
+            min-height: 80px;
+            max-height: 200px;
+            font-size: 14px;
+            outline: none;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            color: #000;
+        }
+        .rich-editor-content:focus {
+            background-color: #fff;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
         }
 
-        .toast {
-            position: fixed;
-            top: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #1e293b;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            z-index: 200;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            animation: slideDown 0.3s ease-out;
-        }
-
-        /* --- Input/Forms --- */
-        input[type="text"], select, textarea {
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 8px;
+        /* Input Styling */
+        input[type="text"], input[type="date"], select, textarea {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 14px;
             width: 100%;
+            transition: border-color 0.2s;
         }
         input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--c-blue-bg);
         }
 
-        /* --- Animations --- */
-        @keyframes zoomIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+        /* --- Modals --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(2px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
         }
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-20px) translateX(-50%); }
-            to { opacity: 1; transform: translateY(0) translateX(-50%); }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 95%;
+            max-width: 500px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transform: scale(0.95);
+            transition: transform 0.2s;
+        }
+        .modal-overlay.active .modal-content { transform: scale(1); }
+
+        .modal-lg { max-width: 1100px; height: 90vh; }
+        
+        .modal-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .modal-body {
+            padding: 16px 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .modal-body.p-0 {
+            padding: 0;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: #f8fafc;
+            border-radius: 0 0 12px 12px;
+        }
+
+        /* --- New Design Styles for Config Modal --- */
+        .modal-header.dark-theme {
+            background-color: #1e293b;
+            color: white;
+            border-bottom: 1px solid #334155;
+            padding: 16px 24px;
+        }
+        .modal-header.dark-theme h3 {
+            color: white;
+        }
+        .modal-header.dark-theme .btn-icon {
+            color: #94a3b8;
+        }
+        .modal-header.dark-theme .btn-icon:hover {
+            background-color: #334155;
+            color: white;
+        }
+
+        .config-section-box {
+            background-color: #eff6ff; /* blue-50 */
+            border: 1px solid #dbeafe; /* blue-100 */
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1e3a8a; /* blue-900 */
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        /* Week Cards */
+        .week-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+        }
+        .week-card {
+            background: white;
+            border: 1px solid #bfdbfe; /* blue-200 */
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .week-label {
+            color: #2563eb; /* blue-600 */
+            font-weight: bold;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+        
+        /* Master Config Grid (New Layout) */
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            align-items: start;
+        }
+        .config-card {
+            background-color: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .config-slot-group {
+            border-bottom: 1px dashed #e2e8f0;
+            padding-bottom: 16px;
+            margin-bottom: 4px;
+        }
+        .config-slot-group:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+        .config-slot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .config-slot-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Color Selection Dots */
+        .color-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 0 0 1px #cbd5e1;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .color-dot:hover {
+            transform: scale(1.15);
+            z-index: 2;
+        }
+        .color-dot.selected {
+            box-shadow: 0 0 0 2px #334155;
+            transform: scale(1.15);
+            z-index: 1;
+        }
+
+        /* Resident Chips */
+        .resident-chip-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .resident-chip {
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 8px 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: 500;
+            color: #334155;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            min-width: 120px;
+        }
+        .resident-delete-btn {
+            color: #cbd5e1;
+            cursor: pointer;
+            margin-left: 8px;
+            padding: 2px;
+            display: flex;
+            align-items: center;
+        }
+        .resident-delete-btn:hover {
+            color: #ef4444; /* red-500 */
+        }
+
+        .add-resident-container {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .add-resident-input {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px 16px;
+            width: 320px;
+            font-size: 14px;
+        }
+        .add-resident-input::placeholder {
+            color: #94a3b8;
+        }
+        .add-resident-btn {
+            background-color: #4f46e5; /* indigo-600 */
+            color: white;
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            font-size: 20px;
+            transition: background-color 0.2s;
+            box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+        }
+        .add-resident-btn:hover {
+            background-color: #4338ca;
+        }
+
+        /* Master Grid Select */
+        .master-slot-select {
+            font-size: 10px;
+            padding: 2px 6px;
+            background-color: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            color: #475569;
+            cursor: pointer;
+            max-width: 110px;
+            height: 24px;
+        }
+        .master-slot-select:hover {
+            border-color: #94a3b8;
         }
 
         /* --- Print Styles --- */
         @media print {
-            header, .no-print, .modal-backdrop, .toast { 
+            @page { 
+                size: A4 portrait; 
+                margin: 4mm; 
+            }
+            
+            html, body {
+                height: 100vh;
+                width: 100%;
+                margin: 0; 
+                padding: 0;
+                overflow: hidden;
+            }
+            
+            body {
+                background: white; 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            /* Hide non-printable elements */
+            header, .no-print, .btn, .modal-overlay, .rich-editor-toolbar { 
                 display: none !important; 
             }
-            body { 
-                padding: 0; 
-                background: white; 
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            .container {
-                max-width: 100%;
+
+            #app {
                 width: 100%;
-                padding: 0;
-                margin: 0;
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
             }
-            .schedule-container {
-                border: 1px solid black;
+            
+            .container { 
+                width: 100%; 
+                max-width: none; 
+                height: 100vh !important;
+                min-height: auto !important;
+                margin: 0; 
+                padding: 3mm !important; 
+                box-shadow: none;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
             }
-            .header-cell, .day-cell, .week-row, .footer-cell, .date-label, .slot {
-                border-color: black;
+
+            /* Adjust Header area in Print - Maintain the stable Grid */
+            .container > .relative.mb-8.pt-6 {
+                flex: 0 0 auto;
+                margin-bottom: 2mm !important;
+                padding-top: 0 !important;
             }
-            .week-row {
-                break-inside: avoid;
+
+            .container > .relative.mb-8.pt-6 > div:first-child {
+                display: grid !important;
+                grid-template-columns: 1fr auto 1fr !important;
+                align-items: end !important;
+                justify-items: center !important;
+                width: 100% !important;
+                border-bottom: 2px solid #000 !important;
+                padding-bottom: 1mm !important;
+                position: relative !important;
+                gap: 0 !important;
             }
-            /* 入力フィールドのボーダー等を消す */
-            input { border: none; background: transparent; }
+
+            #facilityName {
+                grid-column: 1 !important;
+                font-size: 26px !important;
+                width: 100% !important;
+                text-align: right !important;
+                margin-right: 10px !important;
+                border: none !important;
+                padding: 0 !important;
+            }
+
+            #calendarTitleSuffix {
+                grid-column: 2 !important;
+                font-size: 26px !important;
+                white-space: nowrap !important;
+                margin: 0 4mm !important;
+            }
+            
+            .absolute.right-0.bottom-3 {
+                grid-column: 3 !important;
+                position: static !important;
+                justify-self: end !important;
+                display: flex !important;
+                align-items: baseline !important;
+                width: auto !important;
+                writing-mode: horizontal-tb !important;
+            }
+            
+            .absolute.right-0.bottom-3 input {
+                font-size: 18px !important;
+                width: 75px !important;
+                text-align: right !important;
+                font-weight: bold !important;
+                border: none !important;
+            }
+            
+            .absolute.right-0.bottom-3 span {
+                font-size: 16px !important;
+                font-weight: bold !important;
+                display: inline-block !important;
+            }
+
+            /* Calendar Root takes remaining space */
+            #calendarRoot {
+                flex: 1 1 auto;
+                display: flex;
+                flex-direction: column;
+                height: 0;
+                overflow: hidden;
+            }
+
+            /* Table stretches to fill root but stays in page */
+            .calendar-table { 
+                width: 100%;
+                height: 100%;
+                border: 2px solid #000; 
+                border-collapse: collapse;
+                table-layout: fixed;
+            }
+
+            .calendar-table th {
+                height: 22px !important;
+                font-size: 14px !important;
+                padding: 1px !important;
+            }
+            
+            .calendar-table td {
+                height: auto !important;
+            }
+
+            .date-label {
+                height: 20px !important;
+                line-height: 20px !important;
+                font-size: 14px !important;
+            }
+
+            .slot {
+                font-size: 12px !important;
+                padding: 2px !important;
+                line-height: 1.15 !important;
+            }
+
+            .week-footer-cell {
+                height: 24px !important;
+                padding: 0 !important;
+                font-size: 12px !important;
+            }
+            
+            .rich-editor-content { white-space: pre-wrap; }
         }
     </style>
-<script type="importmap">
-{
-  "imports": {
-    "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
-    "react/": "https://esm.sh/react@^19.2.4/",
-    "react": "https://esm.sh/react@^19.2.4"
-  }
-}
-</script>
 </head>
 <body>
 
 <div id="app">
     <!-- Header -->
-    <header class="no-print">
-        <div class="flex flex-col md:flex-row justify-between items-center" style="max-width: 1280px; margin: 0 auto;">
-            <div class="flex items-center gap-2 mb-2 md:mb-0">
-                <div style="background-color: var(--primary); padding: 8px; border-radius: 8px;">
-                    <!-- Calendar Icon -->
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+    <header>
+        <div style="max-width: 1200px; margin: 0 auto;" class="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-blue-600 rounded text-white" style="background: var(--primary);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                 </div>
                 <div>
-                    <h1 style="margin: 0; font-size: 18px;">特養入浴予定表管理</h1>
-                    <span style="font-size: 10px; color: #94a3b8; text-transform: uppercase;">Facility Bathing Schedule</span>
+                    <h1 class="font-bold text-lg m-0">入浴予定表管理</h1>
+                    <div class="text-xs opacity-75">Bathing Schedule Manager</div>
                 </div>
             </div>
 
             <div class="flex items-center gap-2 flex-wrap justify-center">
                 <!-- Undo/Redo -->
-                <div class="flex items-center bg-gray-800 p-1" style="background: #1e293b; border-radius: 8px;">
+                <div class="flex items-center bg-slate-700 rounded p-1 gap-1" style="background: #334155;">
                     <button id="btnUndo" class="btn btn-dark btn-icon" title="戻る">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path></svg>
                     </button>
-                    <div style="width: 1px; height: 16px; background: #475569; margin: 0 4px;"></div>
                     <button id="btnRedo" class="btn btn-dark btn-icon" title="進む">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"></path><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 3.7"></path></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7v6h-6"></path><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 3.7"></path></svg>
                     </button>
                 </div>
 
                 <!-- Month Nav -->
-                <div class="flex items-center bg-gray-800 p-1" style="background: #1e293b; border-radius: 8px;">
-                    <button id="btnPrevMonth" class="btn btn-dark btn-icon">
+                <div class="flex items-center bg-white rounded shadow px-2 py-1">
+                    <button id="btnPrevMonth" class="btn-icon hover:bg-gray-100 rounded">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
                     </button>
-                    <span id="currentMonthLabel" style="padding: 0 12px; font-family: monospace; font-weight: bold; font-size: 16px;">2026年 2月</span>
-                    <button id="btnNextMonth" class="btn btn-dark btn-icon">
+                    <span id="currentMonthLabel" class="font-bold text-lg px-4" style="font-feature-settings: 'tnum';">2026年 2月</span>
+                    <button id="btnNextMonth" class="btn-icon hover:bg-gray-100 rounded">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
                     </button>
                 </div>
 
-                <button id="btnCheck" class="btn" style="background-color: #d97706; color: white;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                    回数チェック
+                <div style="width: 1px; height: 24px; background: #475569; margin: 0 8px;"></div>
+
+                <button id="btnCheck" class="btn" style="background: #fff7ed; color: #9a3412; border: 1px solid #fed7aa;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    回数確認
                 </button>
                 <button id="btnConfig" class="btn btn-primary">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                     マスタ設定
                 </button>
                 <button id="btnPrint" class="btn btn-success">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-                    Ctrl+P 印刷
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                    印刷
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- Main Container -->
+    <!-- Main Content -->
     <main class="container">
-        <div class="text-center mb-4" style="position: relative;">
-            <h2 class="font-bold" style="border-bottom: 2px solid #1e293b; display: inline-block; padding: 0 40px 8px 40px; margin-bottom: 4px; font-size: 24px;">
-                <input type="text" id="facilityNameInput" value="2 階 南 棟" class="font-bold text-center" style="border: none; border-bottom: 2px solid var(--c-blue-600); background: #eff6ff; width: 200px; font-size: inherit; color: inherit;">
-                <span id="headerDateLabel">月間予定表</span>
-            </h2>
-            <div class="no-print" style="position: absolute; right: 0; top: 0;">
-                <div id="updateDateContainer" class="text-red font-bold text-xs flex items-center gap-1 cursor-pointer p-1" style="color: #dc2626;">
-                    <span id="updateDateDisplay">更新日: 未設定</span>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+        <!-- Calendar Header -->
+        <div class="relative mb-8 pt-6">
+            <div class="flex justify-center items-end gap-8 pb-3 border-b-2 border-slate-800 mx-auto relative" style="max-width: 96%; border-bottom-width: 3px;">
+                <input type="text" id="facilityName" value="2 階 東 棟" 
+                       class="font-bold text-right bg-transparent border-none focus:ring-0 text-slate-800 placeholder-slate-300" 
+                       style="width: 400px; outline: none; font-family: inherit; line-height: 1.2; font-size: 42px; padding: 0;">
+                <span id="calendarTitleSuffix" class="font-bold text-slate-800 text-4xl" style="font-feature-settings: 'palt'; line-height: 1.2; white-space: nowrap;">月間予定表 (令和8年 2月)</span>
+                
+                <div class="absolute right-0 bottom-3">
+                    <div class="flex items-center gap-1 text-red font-bold text-sm">
+                        <input type="text" id="updateDateInput" 
+                               class="bg-transparent border-none p-1 text-right font-bold text-red placeholder-red-300 focus:ring-0 cursor-pointer hover:bg-red-50 rounded transition" 
+                               style="width: 80px; font-size: 24px; outline: none; font-family: inherit;"
+                               aria-label="更新日">
+                        <span style="font-size: 20px;">更新</span>
+                        <label for="updateDateInput" class="cursor-pointer">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                        </label>
+                    </div>
                 </div>
             </div>
-            <div class="text-red font-bold text-xs" style="position: absolute; right: 0; bottom: 0; color: #dc2626;" id="printUpdateDate"></div>
         </div>
 
-        <!-- Schedule Table -->
-        <div id="calendarRoot" class="schedule-container">
-            <!-- JS will inject here -->
-        </div>
+        <!-- Calendar Table -->
+        <div id="calendarRoot"></div>
     </main>
 
     <!-- Modals -->
-    <!-- Edit Modal -->
-    <div id="editModal" class="modal-backdrop hidden">
-        <div class="modal">
+    <!-- 1. Edit Slot Modal -->
+    <div id="editModal" class="modal-overlay">
+        <div class="modal-content">
             <div class="modal-header">
-                <h3 class="font-bold flex items-center gap-2" style="margin: 0;">
+                <h3 class="font-bold m-0 flex items-center gap-2">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                    編集
+                    内容編集
                 </h3>
-                <button class="modal-close btn-icon" style="background: none; border: none; color: white; cursor: pointer;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
+                <button class="modal-close btn-icon hover:bg-gray-200">✕</button>
             </div>
             <div class="modal-body">
-                <div id="residentSelectContainer" class="mb-4">
-                    <label class="text-xs font-bold text-light block mb-2 uppercase">名簿から追加</label>
-                    <select id="modalResidentSelect">
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">名簿から追加</label>
+                    <select id="editResidentSelect" class="w-full">
                         <option value="">選択してください...</option>
                     </select>
                 </div>
-
-                <!-- Rich Text Toolbar -->
-                <div class="flex items-center gap-2 mb-2 p-2 bg-gray rounded" style="background: #f1f5f9;">
-                    <button type="button" onclick="document.execCommand('undo')" class="btn-icon" title="Undo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path></svg></button>
-                    <button type="button" onclick="document.execCommand('redo')" class="btn-icon" title="Redo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7v6h-6"></path><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 3.7"></path></svg></button>
-                    <div style="width: 1px; height: 16px; background: #cbd5e1;"></div>
-                    <button type="button" onclick="document.execCommand('bold')" class="font-bold" style="padding: 4px 8px;">B</button>
-                    <div style="width: 1px; height: 16px; background: #cbd5e1;"></div>
-                    <button type="button" onclick="document.execCommand('foreColor', false, '#000000')" style="width: 20px; height: 20px; background: black; border-radius: 50%; border: 1px solid #ccc;"></button>
-                    <button type="button" onclick="document.execCommand('foreColor', false, '#dc2626')" style="width: 20px; height: 20px; background: #dc2626; border-radius: 50%; border: 1px solid #ccc;"></button>
-                    <button type="button" onclick="document.execCommand('foreColor', false, '#2563eb')" style="width: 20px; height: 20px; background: #2563eb; border-radius: 50%; border: 1px solid #ccc;"></button>
+                
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">内容</label>
+                    <div id="editRichEditorContainer"></div>
+                    <div class="text-xs text-gray-400 mt-1 text-right">※改行、文字色設定が可能です</div>
                 </div>
 
-                <div id="modalEditor" class="editor-area" contenteditable="true"></div>
-                
-                <div id="weekPropagateContainer" class="hidden mt-4 p-4 bg-yellow rounded" style="background: #fffbeb; border: 1px solid #fcd34d;">
+                <div class="mb-2">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">背景色</label>
+                    <div id="editColorPicker" class="flex gap-3 justify-center"></div>
+                </div>
+
+                <div id="weekPropagateOption" class="hidden mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" id="propagateCheck">
-                        <span class="text-sm font-bold" style="color: #92400e;">今後の同週の標準設定にする</span>
+                        <span class="text-sm font-bold text-yellow-800">今後の同週設定（デフォルト）として保存</span>
                     </label>
                 </div>
-
-                <div class="mt-4">
-                    <label class="text-xs font-bold text-light block mb-2 uppercase">背景色</label>
-                    <div id="colorPicker" class="color-picker">
-                        <!-- Generated by JS -->
-                    </div>
-                </div>
-
-                <div class="flex gap-2 mt-6">
-                    <button class="modal-close btn w-full justify-center" style="background: #f1f5f9;">キャンセル</button>
-                    <button id="modalSaveBtn" class="btn btn-primary w-full justify-center">保存</button>
-                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-close btn btn-dark">キャンセル</button>
+                <button id="btnSaveEdit" class="btn btn-primary">保存</button>
             </div>
         </div>
     </div>
 
-    <!-- Config Modal -->
-    <div id="configModal" class="modal-backdrop hidden">
-        <div class="modal modal-lg">
-            <div class="modal-header">
-                <h3 class="font-bold flex items-center gap-2" style="margin: 0;">マスタ設定・名簿管理</h3>
-                <button class="modal-close btn-icon" style="background: none; border: none; color: white; cursor: pointer;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    <!-- 2. Master Config Modal -->
+    <div id="configModal" class="modal-overlay">
+        <div class="modal-content modal-lg">
+            <div class="modal-header dark-theme">
+                <div>
+                    <h3 class="font-bold m-0 flex items-center gap-2 text-white">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        マスタ設定・名簿管理
+                    </h3>
+                    <div class="text-xs text-slate-400" style="margin-top: 4px;">基本パターンの登録と入所者名簿の編集を行います</div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex border border-slate-600 rounded">
+                        <button class="btn-icon p-1 hover:bg-slate-700 text-slate-400" title="元に戻す"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg></button>
+                        <div style="width:1px; background:#475569;"></div>
+                        <button class="btn-icon p-1 hover:bg-slate-700 text-slate-400" title="やり直す"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 14l5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5v0A5.5 5.5 0 0 0 9.5 20H13"/></svg></button>
+                    </div>
+                    <button class="modal-close btn-icon text-white hover:bg-slate-700">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="modal-body" style="background-color: #ffffff;">
+                <section class="config-section-box">
+                    <h4 class="section-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                        週番号ごとのデフォルト設定 (マスタ)
+                    </h4>
+                    <div id="configWeeklyFooterRoot" class="week-card-grid"></div>
+                </section>
+
+                <section class="config-section-box">
+                    <h4 class="section-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        入所者名簿
+                    </h4>
+                    <div id="configResidentList" class="resident-chip-list"></div>
+                    <div class="add-resident-container">
+                        <input type="text" id="newResidentInput" placeholder="新しい名前を入力..." class="add-resident-input">
+                        <button id="btnAddResident" class="add-resident-btn" title="追加">＋</button>
+                    </div>
+                </section>
+
+                <section class="config-section-box" style="margin-bottom: 0;">
+                    <div style="border-left: 4px solid #1e293b; padding-left: 12px; margin-bottom: 12px;">
+                        <h4 class="font-bold text-sm text-gray-800 m-0">曜日固定パターン</h4>
+                    </div>
+                    <div id="configMasterGrid" class="config-grid"></div>
+                </section>
+
+                <div class="mt-8 pt-4 border-t flex justify-between items-center">
+                    <div class="text-xs text-gray-500">データのバックアップ・復元</div>
+                    <div class="flex gap-2">
+                        <button id="btnExportJson" class="btn text-xs">JSON書き出し</button>
+                        <button id="btnImportJson" class="btn text-xs">JSON読み込み</button>
+                        <input type="file" id="fileImport" class="hidden" accept=".json">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-close btn" style="border: 1px solid #cbd5e1; color: #334155;">破棄して閉じる</button>
+                <button id="btnSaveConfig" class="btn btn-primary" style="padding: 10px 24px; font-weight: bold;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 21 17 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                    設定を保存
                 </button>
             </div>
-            <div class="modal-body">
-                <!-- Data Management -->
-                <section class="mb-8 p-4 bg-gray rounded" style="background: #f8fafc; border: 1px solid #e2e8f0;">
-                    <h4 class="font-bold mb-4 flex items-center gap-2">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
-                        データ管理
-                    </h4>
-                    <div class="flex gap-4 flex-wrap">
-                        <button id="btnExportJson" class="btn">JSON書き出し</button>
-                        <button id="btnImportJson" class="btn">JSON読み込み</button>
-                        <input type="file" id="fileImport" class="hidden" accept=".json">
-                        <button id="btnExportHtml" class="btn" style="background-color: #0d9488; color: white;">HTML書き出し</button>
-                    </div>
-                </section>
+        </div>
+    </div>
 
-                <!-- Residents -->
-                <section class="mb-8">
-                    <h4 class="font-bold mb-4">入所者名簿</h4>
-                    <div id="residentList" class="flex flex-wrap gap-2 mb-4">
-                        <!-- JS Generated -->
-                    </div>
-                    <div class="flex gap-2" style="max-width: 400px;">
-                        <input type="text" id="newResidentInput" placeholder="新しい名前...">
-                        <button id="btnAddResident" class="btn btn-primary">追加</button>
-                    </div>
-                </section>
-
-                <!-- Master Schedule -->
-                <section>
-                    <h4 class="font-bold mb-4">曜日固定パターン</h4>
-                    <div id="masterScheduleGrid" class="flex flex-col gap-8">
-                        <!-- JS Generated -->
-                    </div>
-                </section>
+    <!-- 3. Check Result Modal -->
+    <div id="checkModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #fff; border-bottom: 1px solid #e2e8f0;">
+                <h3 class="font-bold m-0 text-gray-800">入浴回数確認結果</h3>
+                <button class="modal-close btn-icon hover:bg-gray-100 text-gray-600">✕</button>
             </div>
-            <div class="p-4 border-t flex justify-end gap-2" style="border-top: 1px solid #e2e8f0;">
-                <button class="modal-close btn">閉じる</button>
-                <button id="configSaveBtn" class="btn btn-primary">設定を保存</button>
+            <div class="modal-body p-0">
+                <div id="checkResultBody"></div>
             </div>
         </div>
     </div>
 
-    <!-- Check Result Modal -->
-    <div id="checkModal" class="modal-backdrop hidden">
-        <div class="modal" style="max-width: 600px;">
-            <div class="modal-header" style="background-color: #d97706;">
-                <h3 class="font-bold">入浴回数確認結果</h3>
-                <button class="modal-close btn-icon" style="background: none; border: none; color: white; cursor: pointer;">✕</button>
+    <!-- 4. Confirm Import Modal -->
+    <div id="confirmModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header" style="background-color: #fff; border-bottom: 1px solid #e2e8f0;">
+                <h3 class="font-bold m-0 text-gray-800">確認</h3>
+                <button class="modal-close btn-icon hover:bg-gray-100 text-gray-600">✕</button>
             </div>
-            <div class="modal-body">
-                <div id="checkResultContent"></div>
+            <div class="modal-body text-center p-6">
+                <p class="text-lg font-bold mb-2">読み込みますか？</p>
+                <p class="text-sm text-gray-500">現在のデータは上書きされます。</p>
             </div>
-            <div class="p-4 border-t flex justify-end">
-                <button class="modal-close btn btn-dark">確認しました</button>
+            <div class="modal-footer justify-center gap-4 bg-gray-50 rounded-b-lg">
+                <button id="btnConfirmNo" class="btn btn-dark w-1-2 justify-center">いいえ</button>
+                <button id="btnConfirmYes" class="btn btn-primary w-1-2 justify-center">はい</button>
             </div>
         </div>
     </div>
-
-    <!-- Toast -->
-    <div id="toast" class="toast hidden"></div>
 </div>
 
 <script>
 /**
- * Bathing Schedule Application - Single File Vanilla JS Version
+ * Bathing Schedule Application (Vanilla JS)
  */
 
-// --- Constants & Data ---
-const BG_COLOR_MAP = {
-    pink:   { bg: 'bg-pink', label: 'ピンク', hex: '#fee2e2' },
-    blue:   { bg: 'bg-blue', label: '青', hex: '#dbeafe' },
-    yellow: { bg: 'bg-yellow', label: '黄', hex: '#fef08a' },
-    green:  { bg: 'bg-green', label: '緑', hex: '#bbf7d0' },
-    purple: { bg: 'bg-purple', label: '紫', hex: '#f3e8ff' },
-    gray:   { bg: 'bg-gray', label: '灰', hex: '#f3f4f6' },
-    white:  { bg: 'bg-white', label: '白', hex: '#ffffff' },
-    orange: { bg: 'bg-orange', label: '橙', hex: '#fed7aa' },
-};
+// --- Constants & Config ---
+const COLORS = [
+    { key: 'pink',   label: 'ピンク', bg: 'bg-pink' },
+    { key: 'blue',   label: '青',    bg: 'bg-blue' },
+    { key: 'yellow', label: '黄',    bg: 'bg-yellow' },
+    { key: 'green',  label: '緑',    bg: 'bg-green' },
+    { key: 'purple', label: '紫',    bg: 'bg-purple' },
+    { key: 'white',  label: '白',    bg: 'bg-white' },
+    { key: 'gray',   label: '灰',    bg: 'bg-gray' },
+    { key: 'orange', label: '橙',    bg: 'bg-orange' },
+];
 
 const INITIAL_RESIDENTS = [
   '駒田守彦', '窪山裕子', '水谷藤子', '山田三枝子',
@@ -595,697 +1055,720 @@ const INITIAL_RESIDENTS = [
 ];
 
 const INITIAL_MASTER = {
-  0: { // Sun
-    slot1: { text: '駒田守彦<br>窪山裕子<br>2東寺嶋', color: 'pink' },
-    slot2: { text: '水谷藤子<br>山田三枝子', color: 'gray' },
-    slot3: { text: '', color: 'white' },
-  },
-  1: { // Mon
-    slot1: { text: '吉田すえ<br>田中淑子<br>西 太田', color: 'pink' },
-    slot2: { text: '家木洋子<br>西①星合<br>谷口', color: 'pink' }, 
-    slot3: { text: '訪問販売', color: 'white' }, 
-  },
-  2: { // Tue
-    slot1: { text: '中村弘<br>増田久雄', color: 'gray' },
-    slot2: { text: 'リハビリ<br>清掃<br>(24Hシート作成)', color: 'yellow' },
-    slot3: { text: '', color: 'white' },
-  },
-  3: { // Wed
-    slot1: { text: '駒田守彦<br>窪山裕子<br>2東寺嶋', color: 'pink' },
-    slot2: { text: '松本美好<br>西 紀平', color: 'pink' },
-    slot3: { text: 'ヒロタ', color: 'white' },
-  },
-  4: { // Thu
-    slot1: { text: '水谷藤子<br>山田三枝子', color: 'gray' },
-    slot2: { text: '家木洋子<br>西①星合<br>谷口', color: 'pink' },
-    slot3: { text: '', color: 'white' },
-  },
-  5: { // Fri
-    slot1: { text: 'リハビリ<br>吉田すえ<br>田中淑子', color: 'pink' }, 
-    slot2: { text: 'シーツ交換', color: 'yellow' },
-    slot3: { text: '回診', color: 'white' },
-  },
-  6: { // Sat
-    slot1: { text: '松本美好<br>西 紀平', color: 'pink' },
-    slot2: { text: '中村弘<br>増田久雄', color: 'gray' },
-    slot3: { text: '精神科', color: 'white' },
-  },
-  weeklyFooters: {
-    0: { text: '衛生チェック(　)', color: 'yellow' },
-    1: { text: '衛生チェック(　)', color: 'yellow' },
-    2: { text: '衛生チェック(　)', color: 'yellow' },
-    3: { text: '衛生チェック(　)', color: 'yellow' },
-    4: { text: '衛生チェック(　)', color: 'yellow' },
-  }
+    0: { slot1: { t: '駒田守彦\n窪山裕子\n2東寺嶋', c: 'pink' }, slot2: { t: '水谷藤子\n山田三枝子', c: 'gray' }, slot3: { t: '', c: 'white' } },
+    1: { slot1: { t: '吉田すえ\n田中淑子\n西 太田', c: 'pink' }, slot2: { t: '家木洋子\n西①星合\n谷口', c: 'pink' }, slot3: { t: '訪問販売', c: 'white' } },
+    2: { slot1: { t: '中村弘\n増田久雄', c: 'gray' }, slot2: { t: 'リハビリ\n清掃\n(24Hシート)', c: 'yellow' }, slot3: { t: '', c: 'white' } },
+    3: { slot1: { t: '駒田守彦\n窪山裕子\n2東寺嶋', c: 'pink' }, slot2: { t: '松本美好\n西 紀平', c: 'pink' }, slot3: { t: 'ヒロタ', c: 'white' } },
+    4: { slot1: { t: '水谷藤子\n山田三枝子', c: 'gray' }, slot2: { t: '家木洋子\n西①星合\n谷口', c: 'pink' }, slot3: { t: '', c: 'white' } },
+    5: { slot1: { t: 'リハビリ\n吉田すえ\n田中淑子', c: 'pink' }, slot2: { t: 'シーツ交換', c: 'yellow' }, slot3: { t: '回診', c: 'white' } },
+    6: { slot1: { t: '松本美好\n西 紀平', c: 'pink' }, slot2: { t: '中村弘\n増田久雄', c: 'gray' }, slot3: { t: '精神科', c: 'white' } }
 };
+const INITIAL_WEEKLY_FOOTERS = [
+    { t: '衛生チェック(樋谷)', c: 'yellow' },
+    { t: '衛生チェック( )', c: 'yellow' },
+    { t: '衛生チェック( )', c: 'yellow' },
+    { t: '衛生チェック( )', c: 'yellow' },
+    { t: '衛生チェック( )', c: 'yellow' }
+];
 
-// --- App Class ---
 class App {
     constructor() {
-        this.state = {
-            currentDate: new Date(2026, 1, 1),
-            masterSchedule: JSON.parse(localStorage.getItem('bathing_master_v2')) || INITIAL_MASTER,
-            overrides: JSON.parse(localStorage.getItem('bathing_overrides_v2')) || {},
-            weeklyData: JSON.parse(localStorage.getItem('bathing_weekly_v2')) || {},
-            residentList: JSON.parse(localStorage.getItem('bathing_residents_v2')) || INITIAL_RESIDENTS,
-            facilityName: localStorage.getItem('bathing_facility_name_v2') || '2 階 南 棟',
-            manualUpdateDate: localStorage.getItem('bathing_update_date_v2') || (() => { const d = new Date(); return `${d.getMonth()+1}/${d.getDate()}`; })(),
+        const today = new Date();
+        const defaultUpdateDate = `${today.getMonth() + 1}/${today.getDate()}`;
+        
+        const safeParse = (key, fallback) => {
+            try {
+                const item = localStorage.getItem(key);
+                return item ? JSON.parse(item) : fallback;
+            } catch (e) {
+                return fallback;
+            }
         };
 
+        this.state = {
+            date: today,
+            facilityName: localStorage.getItem('v3_facility') || '2 階 東 棟',
+            updateDate: localStorage.getItem('v3_update_date') || defaultUpdateDate,
+            master: safeParse('v3_master', INITIAL_MASTER),
+            weeklyDefaults: safeParse('v3_weekly_defs', INITIAL_WEEKLY_FOOTERS),
+            overrides: safeParse('v3_overrides', {}),
+            weeklyOverrides: safeParse('v3_weekly_overrides', {}),
+            residents: safeParse('v3_residents', INITIAL_RESIDENTS)
+        };
+        
         this.history = [];
-        this.historyIndex = -1;
-        this.saveHistory(); // Initial state
+        this.historyPtr = -1;
+        this.pushHistory();
 
-        this.editingTarget = null; // { type, key, slot?, weekIdx? }
+        this.editing = null; 
+        this.pendingImportFile = null;
 
         this.init();
     }
 
     init() {
-        this.cacheDOM();
         this.bindEvents();
         this.render();
     }
 
-    cacheDOM() {
-        this.dom = {
-            calendarRoot: document.getElementById('calendarRoot'),
-            currentMonthLabel: document.getElementById('currentMonthLabel'),
-            facilityNameInput: document.getElementById('facilityNameInput'),
-            updateDateDisplay: document.getElementById('updateDateDisplay'),
-            printUpdateDate: document.getElementById('printUpdateDate'),
-            
-            // Modals
-            editModal: document.getElementById('editModal'),
-            configModal: document.getElementById('configModal'),
-            checkModal: document.getElementById('checkModal'),
-            
-            // Edit Modal Inputs
-            modalEditor: document.getElementById('modalEditor'),
-            colorPicker: document.getElementById('colorPicker'),
-            modalResidentSelect: document.getElementById('modalResidentSelect'),
-            propagateCheck: document.getElementById('propagateCheck'),
-            weekPropagateContainer: document.getElementById('weekPropagateContainer'),
-            
-            // Toast
-            toast: document.getElementById('toast'),
-            
-            // Config
-            masterScheduleGrid: document.getElementById('masterScheduleGrid'),
-            residentList: document.getElementById('residentList'),
-            newResidentInput: document.getElementById('newResidentInput'),
-        };
-    }
-
-    bindEvents() {
-        // Nav
-        document.getElementById('btnPrevMonth').onclick = () => this.changeMonth(-1);
-        document.getElementById('btnNextMonth').onclick = () => this.changeMonth(1);
-        
-        // Header Actions
-        document.getElementById('btnUndo').onclick = () => this.undo();
-        document.getElementById('btnRedo').onclick = () => this.redo();
-        document.getElementById('btnPrint').onclick = () => {
-            this.showToast('印刷画面を準備中...');
-            setTimeout(() => window.print(), 100);
-        };
-        document.getElementById('btnCheck').onclick = () => this.runCheck();
-        document.getElementById('btnConfig').onclick = () => this.openConfig();
-
-        // Facility Name & Date
-        this.dom.facilityNameInput.onblur = (e) => this.updateFacilityName(e.target.value);
-        this.dom.updateDateDisplay.onclick = () => {
-            const newVal = prompt('更新日を入力してください', this.state.manualUpdateDate);
-            if(newVal) this.updateUpdateDate(newVal);
-        };
-
-        // Modals
-        document.querySelectorAll('.modal-close').forEach(btn => {
-            btn.onclick = () => this.closeModals();
-        });
-        document.getElementById('modalSaveBtn').onclick = () => this.saveEdit();
-        document.getElementById('configSaveBtn').onclick = () => this.saveConfig();
-
-        // Edit Modal
-        this.dom.modalResidentSelect.onchange = (e) => {
-            if(e.target.value) {
-                this.insertHtmlToEditor(e.target.value);
-                e.target.value = '';
-            }
-        };
-
-        // Config Modal
-        document.getElementById('btnAddResident').onclick = () => this.addResident();
-        document.getElementById('newResidentInput').onkeydown = (e) => {
-            if(e.key === 'Enter') this.addResident();
-        };
-        document.getElementById('btnExportJson').onclick = () => this.exportJson();
-        document.getElementById('btnImportJson').onclick = () => document.getElementById('fileImport').click();
-        document.getElementById('fileImport').onchange = (e) => this.importJson(e);
-        document.getElementById('btnExportHtml').onclick = () => this.exportHtml();
-    }
-
-    // --- History Management ---
-    saveHistory() {
-        const snapshot = JSON.parse(JSON.stringify({
+    pushHistory() {
+        const snapshot = JSON.stringify({
+            master: this.state.master,
+            weeklyDefaults: this.state.weeklyDefaults,
             overrides: this.state.overrides,
-            weeklyData: this.state.weeklyData,
-            masterSchedule: this.state.masterSchedule,
-            residentList: this.state.residentList
-        }));
-
-        // Remove future history if we are in the middle
-        if (this.historyIndex < this.history.length - 1) {
-            this.history = this.history.slice(0, this.historyIndex + 1);
+            weeklyOverrides: this.state.weeklyOverrides,
+            residents: this.state.residents
+        });
+        
+        if (this.historyPtr < this.history.length - 1) {
+            this.history = this.history.slice(0, this.historyPtr + 1);
         }
-
-        // Avoid dupes
-        const current = this.history[this.historyIndex];
-        if (current && JSON.stringify(current) === JSON.stringify(snapshot)) return;
+        
+        if (this.history.length > 0 && this.history[this.historyPtr] === snapshot) return;
 
         this.history.push(snapshot);
-        if (this.history.length > 50) this.history.shift();
-        this.historyIndex = this.history.length - 1;
+        if(this.history.length > 20) this.history.shift();
+        else this.historyPtr++;
         
-        this.updateUndoRedoButtons();
+        this.updateUndoRedoUI();
     }
 
     undo() {
-        if (this.historyIndex > 0) {
-            this.historyIndex--;
+        if(this.historyPtr > 0) {
+            this.historyPtr--;
             this.restoreHistory();
         }
     }
 
     redo() {
-        if (this.historyIndex < this.history.length - 1) {
-            this.historyIndex++;
+        if(this.historyPtr < this.history.length - 1) {
+            this.historyPtr++;
             this.restoreHistory();
         }
     }
 
     restoreHistory() {
-        const data = this.history[this.historyIndex];
-        this.state.overrides = JSON.parse(JSON.stringify(data.overrides));
-        this.state.weeklyData = JSON.parse(JSON.stringify(data.weeklyData));
-        this.state.masterSchedule = JSON.parse(JSON.stringify(data.masterSchedule));
-        this.state.residentList = JSON.parse(JSON.stringify(data.residentList));
-        
-        this.saveToLocalStorage(); // Sync storage
+        const data = JSON.parse(this.history[this.historyPtr]);
+        this.state.master = data.master;
+        this.state.weeklyDefaults = data.weeklyDefaults;
+        this.state.overrides = data.overrides;
+        this.state.weeklyOverrides = data.weeklyOverrides;
+        this.state.residents = data.residents;
+        this.saveLocally(false);
         this.render();
-        this.updateUndoRedoButtons();
-        this.showToast('状態を復元しました');
+        this.updateUndoRedoUI();
     }
 
-    updateUndoRedoButtons() {
-        document.getElementById('btnUndo').disabled = this.historyIndex <= 0;
-        document.getElementById('btnRedo').disabled = this.historyIndex >= this.history.length - 1;
+    updateUndoRedoUI() {
+        const undo = document.getElementById('btnUndo');
+        const redo = document.getElementById('btnRedo');
+        if (undo) {
+            undo.disabled = this.historyPtr <= 0;
+            undo.style.opacity = undo.disabled ? 0.5 : 1;
+        }
+        if (redo) {
+            redo.disabled = this.historyPtr >= this.history.length - 1;
+            redo.style.opacity = redo.disabled ? 0.5 : 1;
+        }
     }
 
-    // --- Rendering ---
+    saveLocally(pushHist = true) {
+        localStorage.setItem('v3_facility', this.state.facilityName);
+        localStorage.setItem('v3_update_date', this.state.updateDate);
+        localStorage.setItem('v3_master', JSON.stringify(this.state.master));
+        localStorage.setItem('v3_weekly_defs', JSON.stringify(this.state.weeklyDefaults));
+        localStorage.setItem('v3_overrides', JSON.stringify(this.state.overrides));
+        localStorage.setItem('v3_weekly_overrides', JSON.stringify(this.state.weeklyOverrides));
+        localStorage.setItem('v3_residents', JSON.stringify(this.state.residents));
+        if(pushHist) this.pushHistory();
+    }
+
     render() {
-        this.renderHeaderInfo();
+        const d = this.state.date;
+        const currentMonthLabel = document.getElementById('currentMonthLabel');
+        const calendarTitleSuffix = document.getElementById('calendarTitleSuffix');
+        const facilityNameInput = document.getElementById('facilityName');
+        const updateDateInput = document.getElementById('updateDateInput');
+
+        if (currentMonthLabel) currentMonthLabel.textContent = `${d.getFullYear()}年 ${d.getMonth()+1}月`;
+        if (calendarTitleSuffix) calendarTitleSuffix.textContent = `月間予定表 (令和${d.getFullYear()-2018}年 ${d.getMonth()+1}月)`;
+        if (facilityNameInput) facilityNameInput.value = this.state.facilityName;
+        if (updateDateInput) updateDateInput.value = this.state.updateDate;
+
         this.renderCalendar();
     }
 
-    renderHeaderInfo() {
-        const { currentDate, facilityName, manualUpdateDate } = this.state;
-        this.dom.currentMonthLabel.textContent = `${currentDate.getFullYear()}年 ${currentDate.getMonth() + 1}月`;
-        this.dom.facilityNameInput.value = facilityName;
-        this.dom.updateDateDisplay.textContent = `${manualUpdateDate} 更新`;
-        this.dom.printUpdateDate.textContent = `${manualUpdateDate} 更新`;
+    renderCalendar() {
+        const root = document.getElementById('calendarRoot');
+        if (!root) return;
+
+        const year = this.state.date.getFullYear();
+        const month = this.state.date.getMonth();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const startDay = new Date(year, month, 1).getDay();
         
-        document.getElementById('headerDateLabel').textContent = `　月間予定表（令和 ${currentDate.getFullYear() - 2018} 年 ${currentDate.getMonth() + 1} 月）`;
+        let html = '<table class="calendar-table"><thead><tr>';
+        ['日','月','火','水','木','金','土'].forEach((day, i) => {
+            const colorClass = i === 0 ? 'text-red' : i === 6 ? 'text-blue' : '';
+            html += `<th class="${colorClass}">${day}曜日</th>`;
+        });
+        html += '</tr></thead><tbody>';
+
+        let currentDay = 1;
+        for (let row = 0; row < 6; row++) {
+             const weekData = [];
+             let hasActualDate = false;
+
+             for (let col = 0; col < 7; col++) {
+                 const isBeforeStart = (row === 0 && col < startDay);
+                 const isAfterEnd = (currentDay > daysInMonth);
+                 if (isBeforeStart || isAfterEnd) {
+                     weekData.push(null);
+                 } else {
+                     weekData.push(currentDay);
+                     currentDay++;
+                     hasActualDate = true;
+                 }
+             }
+
+             if (!hasActualDate && row > 0) break;
+
+             html += '<tr class="cal-row-1">';
+             weekData.forEach((dayNum, colIdx) => {
+                 if (dayNum === null) {
+                     html += '<td style="background:#f8fafc;"></td>';
+                 } else {
+                     const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
+                     const master = this.state.master[colIdx];
+                     const ov = this.state.overrides[dateKey] || {};
+                     const data = ov.slot1 || master.slot1;
+                     const dateClass = colIdx === 0 ? 'is-sunday' : colIdx === 6 ? 'is-saturday' : '';
+                     html += `<td><div class="cell-inner">
+                        <div class="date-label ${dateClass}">${dayNum}</div>
+                        <div class="slot ${this.getColorClass(data.c)}" onclick="app.openEdit('day', '${dateKey}', 'slot1', ${row})">${this.formatContent(data.t)}</div>
+                     </div></td>`;
+                 }
+             });
+             html += '</tr><tr class="cal-row-2">';
+             weekData.forEach((dayNum, colIdx) => {
+                 if (dayNum === null) {
+                     html += '<td style="background:#f8fafc;"></td>';
+                 } else {
+                     const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
+                     const master = this.state.master[colIdx];
+                     const ov = this.state.overrides[dateKey] || {};
+                     const data = ov.slot2 || master.slot2;
+                     html += `<td><div class="cell-inner">
+                        <div class="slot ${this.getColorClass(data.c)}" onclick="app.openEdit('day', '${dateKey}', 'slot2', ${row})">${this.formatContent(data.t)}</div>
+                     </div></td>`;
+                 }
+             });
+             html += '</tr><tr class="cal-row-3">';
+             weekData.forEach((dayNum, colIdx) => {
+                 if (dayNum === null) {
+                     html += '<td style="background:#f8fafc;"></td>';
+                 } else {
+                     const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
+                     const master = this.state.master[colIdx];
+                     const ov = this.state.overrides[dateKey] || {};
+                     const data = ov.slot3 || master.slot3;
+                     html += `<td><div class="cell-inner">
+                        <div class="slot ${this.getColorClass(data.c)} font-bold" onclick="app.openEdit('day', '${dateKey}', 'slot3', ${row})">${this.formatContent(data.t)}</div>
+                     </div></td>`;
+                 }
+             });
+             html += '</tr>';
+             
+             if (hasActualDate) {
+                 const weekKey = `${year}-${month+1}-W${row}`;
+                 const defaultFooter = this.state.weeklyDefaults[Math.min(row, 4)] || { t: '', c: 'white' };
+                 const footerData = this.state.weeklyOverrides[weekKey] || defaultFooter;
+                 html += `<tr class="week-footer-row">
+                    <td colspan="7" onclick="app.openEdit('week', '${weekKey}', null, ${row})">
+                        <div class="week-footer-cell ${this.getColorClass(footerData.c)}">
+                            ${this.formatContent(footerData.t)}
+                        </div>
+                    </td>
+                 </tr>`;
+             }
+        }
+        html += '</tbody></table>';
+        root.innerHTML = html;
     }
 
-    renderCalendar() {
-        const { currentDate, overrides, masterSchedule, weeklyData } = this.state;
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth();
-        
-        // Generate weeks
-        const weeks = [];
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
-        let currentWeek = new Array(firstDay.getDay()).fill(null);
-        
-        for (let d = 1; d <= lastDay.getDate(); d++) {
-            currentWeek.push(new Date(year, month, d));
-            if (currentWeek.length === 7) {
-                weeks.push(currentWeek);
-                currentWeek = [];
-            }
-        }
-        if (currentWeek.length > 0) {
-            while (currentWeek.length < 7) currentWeek.push(null);
-            weeks.push(currentWeek);
-        }
-
-        // Build HTML
-        let html = `
-            <div class="header-row">
-                ${['日','月','火','水','木','金','土'].map((d, i) => 
-                    `<div class="header-cell ${i===0?'text-red':i===6?'text-blue':''}">${d}曜日</div>`
-                ).join('')}
-            </div>
-        `;
-
-        weeks.forEach((week, weekIdx) => {
-            // Determine Sunday date for the week key
-            const sun = week.find(d => d) || new Date();
-            const sundayRef = new Date(sun);
-            sundayRef.setDate(sun.getDate() - sun.getDay());
-            const weekKey = sundayRef.toISOString().split('T')[0];
-
-            // Weekly Footer Data
-            let footerData = weeklyData[weekKey];
-            if (!footerData) {
-                footerData = masterSchedule.weeklyFooters?.[weekIdx] || masterSchedule.weeklyFooter || { text: '衛生チェック(　)', color: 'yellow' };
-            }
-
-            html += `<div class="week-row">
-                <div class="days-grid">`;
-            
-            week.forEach((date, dayIdx) => {
-                if (!date) {
-                    html += `<div class="day-cell" style="background: #f8fafc;"></div>`;
-                    return;
-                }
-
-                const dateKey = date.toISOString().split('T')[0];
-                const dayOfWeek = date.getDay();
-                
-                // Merge Master & Override
-                const dayData = {
-                    slot1: overrides[dateKey]?.slot1 || masterSchedule[dayOfWeek].slot1,
-                    slot2: overrides[dateKey]?.slot2 || masterSchedule[dayOfWeek].slot2,
-                    slot3: overrides[dateKey]?.slot3 || masterSchedule[dayOfWeek].slot3,
-                };
-
-                html += `
-                    <div class="day-cell">
-                        <div class="date-label ${dayIdx===0?'text-red':dayIdx===6?'text-blue':''}">${date.getDate()}</div>
-                        <div class="slot ${BG_COLOR_MAP[dayData.slot1.color].bg}" onclick="app.openEditModal('day', '${dateKey}', 'slot1', ${weekIdx})">
-                            ${dayData.slot1.text}
-                        </div>
-                        <div class="slot ${BG_COLOR_MAP[dayData.slot2.color].bg}" onclick="app.openEditModal('day', '${dateKey}', 'slot2', ${weekIdx})">
-                            ${dayData.slot2.text}
-                        </div>
-                        <div class="slot ${BG_COLOR_MAP[dayData.slot3.color].bg} text-red font-bold" onclick="app.openEditModal('day', '${dateKey}', 'slot3', ${weekIdx})">
-                            ${dayData.slot3.text}
-                        </div>
+    renderConfigModal() {
+        const footerRoot = document.getElementById('configWeeklyFooterRoot');
+        if (footerRoot) {
+            footerRoot.innerHTML = '';
+            this.state.weeklyDefaults.forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.className = 'week-card';
+                div.innerHTML = `
+                    <div class="week-label">第${idx+1}週目</div>
+                    ${this.renderRichEditor(`footer-editor-${idx}`, item.t, `app.updateConfigFooter(${idx}, 't', this.innerHTML)`)}
+                    <div id="footer-dots-${idx}" class="flex justify-center gap-2 mt-auto pt-2">
+                        ${this.renderColorPicker(item.c, (c) => `app.selectConfigFooterColor(${idx}, '${c}')`)}
                     </div>
                 `;
+                const editor = div.querySelector('.rich-editor-content');
+                if (editor) editor.classList.add(this.getColorClass(item.c));
+                footerRoot.appendChild(div);
             });
+        }
 
-            html += `</div>
-                <div class="footer-cell ${BG_COLOR_MAP[footerData.color].bg}" onclick="app.openEditModal('week', '${weekKey}', null, ${weekIdx})">
-                    ${footerData.text}
-                </div>
-            </div>`;
-        });
+        const resRoot = document.getElementById('configResidentList');
+        if (resRoot) {
+            resRoot.innerHTML = '';
+            this.state.residents.forEach(name => {
+                const tag = document.createElement('div');
+                tag.className = 'resident-chip';
+                tag.innerHTML = `
+                    <span>${this.escape(name)}</span>
+                    <span class="resident-delete-btn" onclick="app.removeResident('${name}')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </span>
+                `;
+                resRoot.appendChild(tag);
+            });
+        }
 
-        this.dom.calendarRoot.innerHTML = html;
+        const masterRoot = document.getElementById('configMasterGrid');
+        if (masterRoot) {
+            masterRoot.innerHTML = '';
+            const residentOptions = this.state.residents.map(r => `<option value="${r}">${r}</option>`).join('');
+            ['日','月','火','水','木','金','土'].forEach((dayName, idx) => {
+                const dayData = this.state.master[idx];
+                const card = document.createElement('div');
+                card.className = 'config-card';
+                const headerColor = idx === 0 ? 'text-red-600' : idx === 6 ? 'text-blue-600' : 'text-gray-800';
+                let cardHtml = `<div class="text-center pb-3 border-b border-gray-100 mb-2"><span class="font-bold text-lg ${headerColor}">${dayName}曜日</span></div>`;
+                ['slot1', 'slot2', 'slot3'].forEach((slotKey, slotIdx) => {
+                    const sData = dayData[slotKey];
+                    const label = slotIdx === 0 ? '上段' : slotIdx === 1 ? '中段' : '下段';
+                    cardHtml += `
+                        <div class="config-slot-group">
+                            <div class="config-slot-header">
+                                <span class="config-slot-label">${label}</span>
+                                <select class="master-slot-select" onchange="app.appendResidentToMaster(${idx}, '${slotKey}', this)">
+                                    <option value="">+ 名簿から追加</option>
+                                    ${residentOptions}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                ${this.renderRichEditor(`master-editor-${idx}-${slotKey}`, sData.t, `app.updateConfigMaster(${idx}, '${slotKey}', 't', this.innerHTML)`)}
+                            </div>
+                            <div id="master-dots-${idx}-${slotKey}" class="flex justify-center gap-2">
+                                ${this.renderColorPicker(sData.c, (c) => `app.selectConfigMasterColor(${idx}, '${slotKey}', '${c}')`)}
+                            </div>
+                        </div>
+                    `;
+                });
+                card.innerHTML = cardHtml;
+                masterRoot.appendChild(card);
+                ['slot1', 'slot2', 'slot3'].forEach((slotKey) => {
+                    const sData = dayData[slotKey];
+                    const editor = card.querySelector(`#master-editor-${idx}-${slotKey} .rich-editor-content`);
+                    if(editor) editor.classList.add(this.getColorClass(sData.c));
+                });
+            });
+        }
     }
 
-    // --- Actions ---
-
-    changeMonth(diff) {
-        const d = this.state.currentDate;
-        this.state.currentDate = new Date(d.getFullYear(), d.getMonth() + diff, 1);
+    changeMonth(delta) {
+        const d = this.state.date;
+        this.state.date = new Date(d.getFullYear(), d.getMonth() + delta, 1);
         this.render();
     }
 
-    updateFacilityName(name) {
-        this.state.facilityName = name;
-        localStorage.setItem('bathing_facility_name_v2', name);
-    }
-
-    updateUpdateDate(date) {
-        this.state.manualUpdateDate = date;
-        localStorage.setItem('bathing_update_date_v2', date);
-        this.renderHeaderInfo();
-    }
-
-    // --- Editing ---
-
-    openEditModal(type, key, slot, weekIdx) {
-        this.editingTarget = { type, key, slot, weekIdx };
+    openEdit(type, key, slot, weekIdx) {
+        this.editing = { type, key, slot, weekIdx };
+        const modal = document.getElementById('editModal');
+        const editorContainer = document.getElementById('editRichEditorContainer');
+        const colorPicker = document.getElementById('editColorPicker');
+        const residentSelect = document.getElementById('editResidentSelect');
+        const propagateDiv = document.getElementById('weekPropagateOption');
+        if (!modal || !editorContainer || !colorPicker || !residentSelect) return;
         
-        let initialData;
+        let currentData;
         if (type === 'day') {
-            const dayOfWeek = new Date(key).getDay();
-            const override = this.state.overrides[key]?.[slot];
-            const master = this.state.masterSchedule[dayOfWeek][slot];
-            initialData = override || master;
-            this.dom.weekPropagateContainer.classList.add('hidden');
-            document.getElementById('residentSelectContainer').classList.remove('hidden');
+            const [y, m, d] = key.split('-').map(Number);
+            const dateObj = new Date(y, m - 1, d);
+            const dayOfWeek = dateObj.getDay();
+            const ov = this.state.overrides[key] || {};
+            currentData = ov[slot] ? ov[slot] : this.state.master[dayOfWeek][slot];
+            if (propagateDiv) propagateDiv.classList.add('hidden');
         } else {
-            // Week
-            const override = this.state.weeklyData[key];
-            const master = this.state.masterSchedule.weeklyFooters?.[weekIdx] || { text: '', color: 'yellow' };
-            initialData = override || master;
-            this.dom.weekPropagateContainer.classList.remove('hidden');
-            document.getElementById('residentSelectContainer').classList.add('hidden');
-            this.dom.propagateCheck.checked = false;
+            const ov = this.state.weeklyOverrides[key];
+            currentData = ov ? ov : this.state.weeklyDefaults[Math.min(weekIdx, 4)];
+            if (propagateDiv) {
+                propagateDiv.classList.remove('hidden');
+                document.getElementById('propagateCheck').checked = false;
+            }
         }
 
-        this.dom.modalEditor.innerHTML = initialData.text;
-        this.renderColorPicker(initialData.color);
-        this.renderResidentSelect();
+        editorContainer.innerHTML = this.renderRichEditor('editMainEditor', currentData.t, '');
+        const editorContent = editorContainer.querySelector('.rich-editor-content');
+        if(editorContent) editorContent.classList.add(this.getColorClass(currentData.c));
 
-        this.dom.editModal.classList.remove('hidden');
-    }
+        colorPicker.innerHTML = COLORS.map(c => `
+            <div class="color-dot ${c.bg} ${c.key === currentData.c ? 'selected' : ''}" 
+                 onclick="app.selectEditColor(this, '${c.key}')" 
+                 title="${c.label}"></div>
+        `).join('');
+        this.editing.tempColor = currentData.c;
 
-    renderColorPicker(activeColor) {
-        let html = '';
-        Object.keys(BG_COLOR_MAP).forEach(colorKey => {
-            const isActive = colorKey === activeColor;
-            html += `<div class="color-btn ${BG_COLOR_MAP[colorKey].bg} ${isActive?'active':''}" onclick="app.selectColor('${colorKey}')" title="${BG_COLOR_MAP[colorKey].label}"></div>`;
+        residentSelect.innerHTML = '<option value="">名簿から追加...</option>';
+        this.state.residents.forEach(r => {
+            residentSelect.innerHTML += `<option value="${r}">${r}</option>`;
         });
-        this.dom.colorPicker.innerHTML = html;
-        this.editingColor = activeColor;
+
+        modal.classList.add('active');
     }
 
-    selectColor(color) {
-        this.editingColor = color;
-        this.renderColorPicker(color);
-    }
-
-    renderResidentSelect() {
-        const select = this.dom.modalResidentSelect;
-        select.innerHTML = '<option value="">名簿から追加...</option>';
-        this.state.residentList.forEach(name => {
-            const opt = document.createElement('option');
-            opt.value = name;
-            opt.textContent = name;
-            select.appendChild(opt);
-        });
-    }
-
-    insertHtmlToEditor(text) {
-        this.dom.modalEditor.focus();
-        const html = `${text}<br>`;
-        document.execCommand('insertHTML', false, html);
+    selectEditColor(el, color) {
+        document.querySelectorAll('#editColorPicker .color-dot').forEach(d => d.classList.remove('selected'));
+        el.classList.add('selected');
+        this.editing.tempColor = color;
+        const editorContent = document.querySelector('#editMainEditor .rich-editor-content');
+        if(editorContent) {
+            COLORS.forEach(c => editorContent.classList.remove(c.bg));
+            editorContent.classList.add(this.getColorClass(color));
+        }
     }
 
     saveEdit() {
-        const text = this.cleanHtml(this.dom.modalEditor.innerHTML);
-        const color = this.editingColor;
-        const { type, key, slot, weekIdx } = this.editingTarget;
-
+        if(!this.editing) return;
+        const editorContent = document.querySelector('#editMainEditor .rich-editor-content');
+        const text = editorContent ? editorContent.innerHTML : '';
+        const color = this.editing.tempColor;
+        const { type, key, slot, weekIdx } = this.editing;
         if (type === 'day') {
-            if (!this.state.overrides[key]) this.state.overrides[key] = {};
-            this.state.overrides[key][slot] = { text, color };
+            if(!this.state.overrides[key]) this.state.overrides[key] = {};
+            this.state.overrides[key][slot] = { t: text, c: color };
         } else {
-            this.state.weeklyData[key] = { text, color };
-            if (this.dom.propagateCheck.checked) {
-                if (!this.state.masterSchedule.weeklyFooters) this.state.masterSchedule.weeklyFooters = {};
-                this.state.masterSchedule.weeklyFooters[weekIdx] = { text, color };
-                this.showToast(`第${weekIdx + 1}週の標準設定を更新しました`);
+            this.state.weeklyOverrides[key] = { t: text, c: color };
+            if(document.getElementById('propagateCheck').checked) {
+                if(weekIdx < 5) this.state.weeklyDefaults[weekIdx] = { t: text, c: color };
             }
         }
-
-        this.saveToLocalStorage();
-        this.saveHistory();
+        this.saveLocally();
         this.render();
-        this.closeModals();
-        this.showToast('保存しました');
+        this.closeModal('editModal');
     }
 
-    // --- Config ---
+    updateConfigFooter(idx, field, val) { this.state.weeklyDefaults[idx][field] = val; }
+    updateConfigMaster(dayIdx, slot, field, val) { this.state.master[dayIdx][slot][field] = val; }
 
-    openConfig() {
-        this.renderConfigResidents();
-        this.renderConfigMaster();
-        this.dom.configModal.classList.remove('hidden');
+    selectConfigMasterColor(dayIdx, slotKey, color) {
+        this.state.master[dayIdx][slotKey].c = color;
+        const editor = document.querySelector(`#master-editor-${dayIdx}-${slotKey} .rich-editor-content`);
+        if(editor) {
+            COLORS.forEach(c => editor.classList.remove(c.bg));
+            editor.classList.add(this.getColorClass(color));
+        }
+        const container = document.getElementById(`master-dots-${dayIdx}-${slotKey}`);
+        if(container) {
+            Array.from(container.children).forEach(dot => dot.classList.remove('selected'));
+            const targetDot = container.querySelector(`[data-color="${color}"]`);
+            if(targetDot) targetDot.classList.add('selected');
+        }
     }
 
-    renderConfigResidents() {
-        const container = this.dom.residentList;
-        container.innerHTML = '';
-        this.state.residentList.forEach(name => {
-            const el = document.createElement('div');
-            el.className = 'bg-white border p-2 rounded flex items-center gap-2';
-            el.innerHTML = `
-                <span>${name}</span>
-                <button class="text-red font-bold" onclick="app.removeResident('${name}')">✕</button>
-            `;
-            container.appendChild(el);
-        });
+    selectConfigFooterColor(idx, color) {
+        this.state.weeklyDefaults[idx].c = color;
+        const editor = document.querySelector(`#footer-editor-${idx} .rich-editor-content`);
+        if(editor) {
+            COLORS.forEach(c => editor.classList.remove(c.bg));
+            editor.classList.add(this.getColorClass(color));
+        }
+        const container = document.getElementById(`footer-dots-${idx}`);
+        if(container) {
+            Array.from(container.children).forEach(dot => dot.classList.remove('selected'));
+            const targetDot = container.querySelector(`[data-color="${color}"]`);
+            if(targetDot) targetDot.classList.add('selected');
+        }
+    }
+    
+    appendResidentToMaster(dayIdx, slotKey, selectEl) {
+        const val = selectEl.value;
+        if(!val) return;
+        const editorId = `master-editor-${dayIdx}-${slotKey}`;
+        const editor = document.querySelector(`#${editorId} .rich-editor-content`);
+        if(editor) {
+            const hasContent = editor.innerText.trim().length > 0;
+            const appendHtml = (hasContent ? '<br>' : '') + val;
+            editor.insertAdjacentHTML('beforeend', appendHtml);
+            this.state.master[dayIdx][slotKey].t = editor.innerHTML;
+        }
+        selectEl.value = '';
     }
 
     addResident() {
-        const name = this.dom.newResidentInput.value.trim();
-        if (name && !this.state.residentList.includes(name)) {
-            this.state.residentList.push(name);
-            this.dom.newResidentInput.value = '';
-            this.renderConfigResidents();
+        const input = document.getElementById('newResidentInput');
+        const val = input.value.trim();
+        if(val && !this.state.residents.includes(val)) {
+            this.state.residents.push(val);
+            input.value = '';
+            this.renderConfigModal(); 
         }
     }
-
     removeResident(name) {
-        this.state.residentList = this.state.residentList.filter(n => n !== name);
-        this.renderConfigResidents();
+        this.state.residents = this.state.residents.filter(r => r !== name);
+        this.renderConfigModal();
     }
-
-    renderConfigMaster() {
-        const container = this.dom.masterScheduleGrid;
-        container.innerHTML = '';
-        
-        const days = ['日','月','火','水','木','金','土'];
-        days.forEach((day, idx) => {
-            const dayData = this.state.masterSchedule[idx];
-            let html = `
-                <div class="border p-4 rounded bg-white">
-                    <h5 class="font-bold border-b mb-2 ${idx===0?'text-red':idx===6?'text-blue':''}">${day}曜日</h5>
-                    <div class="grid gap-4" style="grid-template-columns: repeat(3, 1fr);">
-            `;
-            
-            ['slot1', 'slot2', 'slot3'].forEach(slot => {
-                const data = dayData[slot];
-                html += `
-                    <div>
-                        <label class="text-xs text-light block mb-1 uppercase">${slot}</label>
-                        <textarea class="w-full text-xs p-1 border rounded mb-1" rows="3" onchange="app.updateMasterData(${idx}, '${slot}', 'text', this.value)">${data.text.replace(/<br>/g, '\n')}</textarea>
-                        <select class="w-full text-xs p-1 border rounded" onchange="app.updateMasterData(${idx}, '${slot}', 'color', this.value)">
-                            ${Object.keys(BG_COLOR_MAP).map(k => `<option value="${k}" ${k===data.color?'selected':''}>${BG_COLOR_MAP[k].label}</option>`).join('')}
-                        </select>
-                    </div>
-                `;
-            });
-            
-            html += `</div></div>`;
-            container.insertAdjacentHTML('beforeend', html);
-        });
-    }
-
-    updateMasterData(dayIdx, slot, field, value) {
-        if (field === 'text') value = value.replace(/\n/g, '<br>');
-        this.state.masterSchedule[dayIdx][slot][field] = value;
-    }
-
     saveConfig() {
-        this.saveToLocalStorage();
-        this.saveHistory();
+        const year = this.state.date.getFullYear();
+        const month = this.state.date.getMonth();
+        for(let row=0; row<6; row++) {
+            const weekKey = `${year}-${month+1}-W${row}`;
+            if (this.state.weeklyOverrides[weekKey]) delete this.state.weeklyOverrides[weekKey];
+        }
+        this.saveLocally();
         this.render();
-        this.closeModals();
-        this.showToast('設定を保存しました');
+        this.closeModal('configModal');
     }
 
-    // --- Check ---
-
-    runCheck() {
-        const { currentDate, overrides, masterSchedule, residentList } = this.state;
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth();
-        const lastDate = new Date(year, month + 1, 0).getDate();
+    async exportJson() {
+        const stateStr = JSON.stringify(this.state, null, 2);
         
-        const result = [];
-        let currentWeekStart = 1;
-        let weekIndex = 1;
+        // ファイル名生成: yyyy-mm-dd HH:mm:ss入浴スケジュール.json
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const hh = String(now.getHours()).padStart(2, '0');
+        const min = String(now.getMinutes()).padStart(2, '0');
+        const ss = String(now.getSeconds()).padStart(2, '0');
+        const fileName = `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}入浴スケジュール.json`;
 
-        while (currentWeekStart <= lastDate) {
-            const startDateObj = new Date(year, month, currentWeekStart);
-            let currentWeekEnd = currentWeekStart + (6 - startDateObj.getDay());
-            if (currentWeekEnd > lastDate) currentWeekEnd = lastDate;
-
-            const counts = {};
-            residentList.forEach(r => counts[r] = 0);
-
-            for (let d = currentWeekStart; d <= currentWeekEnd; d++) {
-                const date = new Date(year, month, d);
-                const dateKey = date.toISOString().split('T')[0];
-                const dayOfWeek = date.getDay();
-                
-                const s1 = overrides[dateKey]?.slot1?.text || masterSchedule[dayOfWeek].slot1.text;
-                const s2 = overrides[dateKey]?.slot2?.text || masterSchedule[dayOfWeek].slot2.text;
-                const combined = (s1 + s2).replace(/<[^>]+>/g, '');
-
-                residentList.forEach(name => {
-                    if (combined.includes(name)) counts[name]++;
+        // Modern browsers with File System Access API
+        if ('showSaveFilePicker' in window) {
+            try {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: fileName,
+                    types: [{
+                        description: 'JSON File',
+                        accept: { 'application/json': ['.json'] },
+                    }],
                 });
+                const writable = await handle.createWritable();
+                await writable.write(stateStr);
+                await writable.close();
+            } catch (err) {
+                // User cancelled or other error
+                if (err.name !== 'AbortError') {
+                    console.error('Save failed:', err);
+                    alert('保存に失敗しました。');
+                }
             }
-
-            const missing = residentList
-                .filter(name => counts[name] < 2)
-                .map(name => ({ name, count: counts[name] }));
-
-            if (missing.length > 0) {
-                result.push({ week: weekIndex, start: currentWeekStart, end: currentWeekEnd, missing });
-            }
-
-            currentWeekStart = currentWeekEnd + 1;
-            weekIndex++;
-        }
-
-        // Render Result
-        const container = document.getElementById('checkResultContent');
-        if (result.length === 0) {
-            container.innerHTML = `
-                <div class="text-center py-8">
-                    <div style="font-size: 40px; color: #059669;">✔</div>
-                    <h4 class="font-bold text-lg mt-2">問題ありません</h4>
-                    <p class="text-light">全員が各週2回以上入浴予定です。</p>
-                </div>
-            `;
         } else {
-            let html = '<p class="p-2 bg-yellow rounded mb-4 text-sm font-bold">以下の入所者は週2回未満です:</p>';
-            result.forEach(r => {
-                html += `
-                    <div class="mb-4 border rounded p-2">
-                        <div class="font-bold text-xs bg-gray-800 text-white p-1 rounded mb-2">
-                            第${r.week}週 (${month+1}/${r.start} ~ ${r.end})
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            ${r.missing.map(m => `
-                                <div class="flex justify-between bg-red-50 p-1 rounded border border-red-100">
-                                    <span class="font-bold">${m.name}</span>
-                                    <span class="bg-red-600 text-white px-2 rounded-full text-xs font-bold">${m.count}回</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
+            // Fallback for older browsers (no location picker)
+            const blob = new Blob([stateStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            a.click();
+            URL.revokeObjectURL(url);
+            alert('保存場所を選択できませんでした。ダウンロードフォルダを確認してください。');
         }
-
-        this.dom.checkModal.classList.remove('hidden');
-    }
-
-    // --- IO ---
-
-    exportJson() {
-        const data = JSON.stringify(this.state, null, 2);
-        const blob = new Blob([data], { type: 'application/json' });
-        this.downloadFile(blob, `bathing-schedule-${Date.now()}.json`);
     }
 
     importJson(e) {
         const file = e.target.files[0];
-        if (!file) return;
+        if(!file) return;
+        e.target.value = '';
+        this.pendingImportFile = file;
+        const confirmModal = document.getElementById('confirmModal');
+        if (confirmModal) confirmModal.classList.add('active');
+    }
+    
+    executeImport() {
+        const file = this.pendingImportFile;
+        this.pendingImportFile = null;
+        const confirmModal = document.getElementById('confirmModal');
+        if (confirmModal) confirmModal.classList.remove('active');
+        if(!file) return;
         const reader = new FileReader();
         reader.onload = (ev) => {
             try {
                 const data = JSON.parse(ev.target.result);
-                // Merge state
-                if(data.currentDate) this.state.currentDate = new Date(data.currentDate);
-                if(data.masterSchedule) this.state.masterSchedule = data.masterSchedule;
-                if(data.overrides) this.state.overrides = data.overrides;
-                if(data.weeklyData) this.state.weeklyData = data.weeklyData;
-                if(data.residentList) this.state.residentList = data.residentList;
-                
-                this.saveToLocalStorage();
-                this.render();
-                this.closeModals();
-                this.showToast('読み込み完了');
-            } catch (err) {
-                alert('読み込みエラー: ' + err);
+                if(data.master && data.residents) {
+                    this.state = { ...this.state, ...data };
+                    this.state.date = new Date(this.state.date);
+                    if(isNaN(this.state.date.getTime())) this.state.date = new Date();
+                    this.saveLocally();
+                    this.render();
+                    this.renderConfigModal();
+                    alert('設定を読み込みました');
+                } else {
+                    alert('データ形式が正しくありません');
+                }
+            } catch(err) {
+                alert('エラー: ' + err.message);
             }
         };
         reader.readAsText(file);
     }
 
-    exportHtml() {
-        const styles = document.querySelector('style').innerHTML;
-        const container = this.dom.calendarRoot.innerHTML;
-        const { currentDate, facilityName, manualUpdateDate } = this.state;
+    runCheck() {
+        const year = this.state.date.getFullYear();
+        const month = this.state.date.getMonth();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const firstDayObj = new Date(year, month, 1);
+        const startDay = firstDayObj.getDay();
+        const weeks = [];
+        let currentDay = 1;
+        for (let row = 0; row < 6; row++) {
+             if (currentDay > daysInMonth) break;
+             const weekStartDay = currentDay;
+             let daysInThisWeek = row === 0 ? 7 - startDay : 7;
+             const weekEndDay = Math.min(weekStartDay + daysInThisWeek - 1, daysInMonth);
+             const counts = {};
+             this.state.residents.forEach(r => counts[r] = 0);
+             weeks.push({ id: row, start: weekStartDay, end: weekEndDay, counts });
+             currentDay = weekEndDay + 1;
+        }
+        for(let d=1; d<=daysInMonth; d++) {
+            const dateObj = new Date(year, month, d);
+            const dateKey = this.formatDate(dateObj);
+            const dayOfWeek = dateObj.getDay();
+            let weekIdx = 0;
+            if (d <= (7 - startDay)) { weekIdx = 0; }
+            else { weekIdx = Math.floor((d - (7 - startDay) - 1) / 7) + 1; }
+            if (!weeks[weekIdx]) continue;
+            const master = this.state.master[dayOfWeek];
+            const ov = this.state.overrides[dateKey] || {};
+            const txt = [ov.slot1?.t || master.slot1.t, ov.slot2?.t || master.slot2.t, ov.slot3?.t || master.slot3.t].join(' ');
+            this.state.residents.forEach(r => {
+                if(txt.includes(r)) weeks[weekIdx].counts[r]++;
+            });
+        }
+        const body = document.getElementById('checkResultBody');
+        if (!body) return;
+        let html = `<div class="p-4 bg-gray-100" style="min-height: 400px; max-height: 70vh; overflow-y: auto;"><div class="bg-white border border-gray-200 text-gray-800 p-4 rounded-lg mb-6 text-sm flex items-start gap-3 shadow-sm"><div class="text-gray-400 mt-0.5"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div><div><div class="font-bold mb-1">入浴回数確認結果 (2回未満=赤, 3回以上=青)</div></div></div>`;
+        let hasIssues = false;
+        weeks.forEach((week, i) => {
+            const issues = [];
+            this.state.residents.forEach(r => {
+                const c = week.counts[r];
+                if (c < 2) issues.push({ name: r, count: c, type: 'low' });
+                else if (c >= 3) issues.push({ name: r, count: c, type: 'high' });
+            });
+            if (issues.length === 0) return;
+            hasIssues = true;
+            html += `<div class="mb-6"><h4 class="text-center text-blue-600 font-bold text-base mb-3">第${i+1}週 (${month+1}/${week.start}〜${week.end})</h4><div class="flex flex-col gap-2">`;
+            issues.forEach(item => {
+                 const textColor = item.type === 'low' ? 'text-red-600' : 'text-blue-600';
+                 html += `<div class="flex items-center justify-between bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm"><span class="font-bold text-lg ${textColor}">${item.name}</span><span class="font-bold text-gray-600 bg-gray-50 border border-gray-200 px-3 py-1 rounded text-sm">${item.count}回</span></div>`;
+            });
+            html += `</div></div>`;
+        });
+        if (!hasIssues) html += `<div class="text-center py-12 text-gray-400"><div class="text-5xl mb-4">🎉</div><div class="font-bold text-lg">問題ありません</div></div>`;
+        html += `</div>`;
+        body.innerHTML = html;
+        const checkModal = document.getElementById('checkModal');
+        if (checkModal) checkModal.classList.add('active');
+    }
+
+    bindEvents() {
+        const btnPrevMonth = document.getElementById('btnPrevMonth');
+        const btnNextMonth = document.getElementById('btnNextMonth');
+        const btnUndo = document.getElementById('btnUndo');
+        const btnRedo = document.getElementById('btnRedo');
+        const btnConfig = document.getElementById('btnConfig');
+        const btnCheck = document.getElementById('btnCheck');
+        const btnPrint = document.getElementById('btnPrint');
+        const btnSaveEdit = document.getElementById('btnSaveEdit');
+        const btnSaveConfig = document.getElementById('btnSaveConfig');
+        const editResidentSelect = document.getElementById('editResidentSelect');
+        const facilityName = document.getElementById('facilityName');
+        const updateDateInput = document.getElementById('updateDateInput');
+        const btnAddResident = document.getElementById('btnAddResident');
+        const btnExportJson = document.getElementById('btnExportJson');
+        const btnImportJson = document.getElementById('btnImportJson');
+        const fileImport = document.getElementById('fileImport');
+        const btnConfirmYes = document.getElementById('btnConfirmYes');
+        const btnConfirmNo = document.getElementById('btnConfirmNo');
+
+        if (btnPrevMonth) btnPrevMonth.onclick = () => this.changeMonth(-1);
+        if (btnNextMonth) btnNextMonth.onclick = () => this.changeMonth(1);
+        if (btnUndo) btnUndo.onclick = () => this.undo();
+        if (btnRedo) btnRedo.onclick = () => this.redo();
+        if (btnConfig) btnConfig.onclick = () => { this.renderConfigModal(); document.getElementById('configModal').classList.add('active'); };
+        if (btnCheck) btnCheck.onclick = () => this.runCheck();
+        if (btnPrint) btnPrint.onclick = () => window.print();
+        if (btnSaveEdit) btnSaveEdit.onclick = () => this.saveEdit();
+        if (btnSaveConfig) btnSaveConfig.onclick = () => this.saveConfig();
+        if (btnAddResident) btnAddResident.onclick = () => this.addResident();
+        if (btnExportJson) btnExportJson.onclick = () => this.exportJson();
+        if (btnImportJson) btnImportJson.onclick = () => fileImport.click();
+        if (fileImport) fileImport.onchange = (e) => this.importJson(e);
+        if (btnConfirmYes) btnConfirmYes.onclick = () => this.executeImport();
+        if (btnConfirmNo) btnConfirmNo.onclick = () => { this.pendingImportFile = null; document.getElementById('confirmModal').classList.remove('active'); };
         
-        const html = `<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<title>${facilityName} 入浴予定表</title>
-<style>${styles}</style>
-<style>
-  body { background: white; padding: 20px; }
-  .no-print { display: none !important; }
-  /* Force print styling */
-  .schedule-container { border: 2px solid black; }
-  .header-cell, .day-cell, .week-row, .footer-cell, .date-label, .slot { border-color: black; }
-</style>
-</head>
-<body>
-  <div class="text-center mb-6">
-    <h2 class="font-bold" style="border-bottom: 2px solid #000; display: inline-block; padding: 0 40px 8px 40px; margin-bottom: 4px; font-size: 24px;">
-      ${facilityName}　月間予定表（令和 ${currentDate.getFullYear() - 2018} 年 ${currentDate.getMonth() + 1} 月）
-    </h2>
-    <div style="text-align: right; color: red; font-weight: bold; font-size: 12px;">${manualUpdateDate} 更新</div>
-  </div>
-  <div class="schedule-container">${container}</div>
-</body></html>`;
+        document.querySelectorAll('.modal-close').forEach(el => {
+            el.onclick = (e) => this.closeModal(e.target.closest('.modal-overlay').id);
+        });
 
-        const blob = new Blob([html], { type: 'text/html' });
-        this.downloadFile(blob, `${currentDate.getFullYear()}-${currentDate.getMonth()+1}_schedule.html`);
+        if (editResidentSelect) {
+            editResidentSelect.onchange = (e) => {
+                if(e.target.value) {
+                    const editor = document.querySelector('#editMainEditor .rich-editor-content');
+                    if(editor) {
+                        editor.innerHTML = editor.innerHTML + (editor.innerHTML ? '<br>' : '') + e.target.value;
+                        e.target.value = '';
+                    }
+                }
+            };
+        }
+        if (facilityName) facilityName.onchange = (e) => { this.state.facilityName = e.target.value; this.saveLocally(); };
+        if (updateDateInput) updateDateInput.onchange = (e) => { this.state.updateDate = e.target.value; this.saveLocally(); };
     }
 
-    downloadFile(blob, filename) {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+    closeModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) modal.classList.remove('active');
+        this.editing = null;
     }
 
-    // --- Utils ---
-
-    saveToLocalStorage() {
-        localStorage.setItem('bathing_master_v2', JSON.stringify(this.state.masterSchedule));
-        localStorage.setItem('bathing_overrides_v2', JSON.stringify(this.state.overrides));
-        localStorage.setItem('bathing_weekly_v2', JSON.stringify(this.state.weeklyData));
-        localStorage.setItem('bathing_residents_v2', JSON.stringify(this.state.residentList));
+    formatDate(d) {
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
 
-    cleanHtml(html) {
-        return html
-            .replace(/<div>/g, '<br>')
-            .replace(/<\/div>/g, '')
-            .replace(/<p>/g, '')
-            .replace(/<\/p>/g, '<br>')
-            .replace(/(<br>){2,}/g, '<br>')
-            .replace(/^<br>|<br>$/g, '');
+    getColorClass(key) { return COLORS.find(c => c.key === key)?.bg || 'bg-white'; }
+
+    escape(str) { return str ? str.replace(/</g, "&lt;").replace(/>/g, "&gt;") : ''; }
+
+    renderRichEditor(id, initialValue, onInputStr) {
+        let safeHtml = this.formatContent(initialValue);
+        return `<div id="${id}" class="rich-editor-box"><div class="rich-editor-toolbar"><span>文字色:</span><button class="rich-tool-btn color-black" onmousedown="event.preventDefault(); app.execColor('removeFormat')" title="黒"></button><button class="rich-tool-btn color-red" onmousedown="event.preventDefault(); app.execColor('foreColor', '#dc2626')" title="赤"></button><button class="rich-tool-btn color-blue" onmousedown="event.preventDefault(); app.execColor('foreColor', '#2563eb')" title="青"></button></div><div class="rich-editor-content" contenteditable="true" oninput="${onInputStr}">${safeHtml}</div></div>`;
     }
 
-    closeModals() {
-        document.querySelectorAll('.modal-backdrop').forEach(el => el.classList.add('hidden'));
+    execColor(cmd, val) { document.execCommand(cmd, false, val); }
+
+    formatContent(val) {
+        if (!val) return '';
+        let str = String(val);
+        // HTMLタグ（<br> or <div> or <span> or <font or <p）が含まれているかチェック
+        const hasTags = /<(br|div|span|font|p)/i.test(str);
+        
+        if (!hasTags) {
+            // タグがない（プレーンテキスト）場合は、エスケープした上で \n を <br> に変換
+            return this.escape(str).replace(/\n/g, '<br>');
+        }
+        
+        // すでにタグがある場合はHTMLとして扱うが、
+        // contenteditableで挿入された literalな改行文字(\n)も<br>に変換して確実に反映させる
+        return str.replace(/\n/g, '<br>');
     }
 
-    showToast(msg) {
-        const toast = this.dom.toast;
-        toast.textContent = msg;
-        toast.classList.remove('hidden');
-        setTimeout(() => toast.classList.add('hidden'), 3000);
+    renderColorPicker(currentVal, clickHandlerStrGen) {
+        return COLORS.map(c => `<div class="color-dot ${c.bg} ${c.key === currentVal ? 'selected' : ''}" data-color="${c.key}" onclick="${clickHandlerStrGen(c.key)}" title="${c.label}"></div>`).join('');
     }
 }
-
-// Start App
 const app = new App();
-window.app = app; // Expose for inline onclick handlers
-
+window.app = app;
 </script>
 </body>
-</html>
+</html>--- END OF FILE index.html ---
